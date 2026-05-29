@@ -20,6 +20,7 @@ interface Category {
   section_type?: string | null
   base_price?: number | null
   order: number
+  type?: string | null
 }
 
 const SECTION_TYPES = [
@@ -29,14 +30,24 @@ const SECTION_TYPES = [
   { value: 'employee', label: 'Employee' },
 ] as const
 
+const CATEGORY_TYPES = [
+  { value: 'cibo', label: 'Cucina' },
+  { value: 'bar', label: 'Bar & Colazione' },
+  { value: 'vini', label: 'Vini & Bevande' },
+  { value: 'eventi', label: 'Eventi' },
+  { value: 'proteico', label: 'Menu Proteico' },
+  { value: 'dipendente', label: 'Menu Dipendente' },
+] as const
+
 const DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
 
-type TabId = 'cucina' | 'bar' | 'young' | 'proteico' | 'dipendente' | 'vini'
+type TabId = 'cucina' | 'bar' | 'young' | 'buffet' | 'proteico' | 'dipendente' | 'vini'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'cucina', label: 'Cucina' },
   { id: 'bar', label: 'Bar & Colazione' },
   { id: 'young', label: 'Young Menu' },
+  { id: 'buffet', label: 'Buffet Menu' },
   { id: 'proteico', label: 'Menu Proteico' },
   { id: 'dipendente', label: 'Menu Dipendente' },
   { id: 'vini', label: 'Vini & Bevande' },
@@ -46,13 +57,17 @@ const CUCI_TITLES = new Set(['Antipasto', 'Primi', 'Secondi', 'Contorni', 'Insal
 const BAR_TITLES = new Set(['Bar & Colazione', 'Croissant', 'Crostata', 'Toast', 'Piadine'])
 const GRP_TITLES = new Set(['Vini', 'Cocktail', 'Bevande'])
 
-function tabForCat(name: string): TabId | null {
+function tabForCat(name: string, type?: string | null): TabId | null {
   if (CUCI_TITLES.has(name)) return 'cucina'
-  if (BAR_TITLES.has(name)) return 'bar'
-  if (name === 'Young Menu') return 'young'
-  if (name === 'Menu Proteico') return 'proteico'
-  if (name === 'Menu Dipendente') return 'dipendente'
-  if (GRP_TITLES.has(name)) return 'vini'
+  if (BAR_TITLES.has(name) || type === 'bar') return 'bar'
+  if (name === 'Young Menu' || type === 'eventi') return 'young'
+  if (name === 'Buffet' || name === 'Buffet Menu') return 'buffet'
+  if (type === 'eventi') {
+    return name.toLowerCase().includes('buffet') ? 'buffet' : 'young'
+  }
+  if (name === 'Menu Proteico' || type === 'proteico') return 'proteico'
+  if (name === 'Menu Dipendente' || type === 'dipendente') return 'dipendente'
+  if (GRP_TITLES.has(name) || type === 'vini') return 'vini'
   return null
 }
 
@@ -67,11 +82,13 @@ export default function AdminDashboard() {
   const [editingCategoryName, setEditingCategoryName] = useState('')
   const [editingCategoryType, setEditingCategoryType] = useState('ala_carte')
   const [editingCategoryBasePrice, setEditingCategoryBasePrice] = useState('')
+  const [editingCategoryMenuType, setEditingCategoryMenuType] = useState('cibo')
 
   // add category state
   const [showAddCategory, setShowAddCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryType, setNewCategoryType] = useState('ala_carte')
+  const [newCategoryMenuType, setNewCategoryMenuType] = useState('cibo')
   const [newCategoryBasePrice, setNewCategoryBasePrice] = useState('')
 
   // item editing state
@@ -99,7 +116,7 @@ export default function AdminDashboard() {
 
   const sortedCategories = [...categories].sort((a, b) => a.order - b.order)
 
-  const tabCategories = sortedCategories.filter(c => tabForCat(c.name) === activeTab)
+  const tabCategories = sortedCategories.filter((c) => tabForCat(c.name, c.type) === activeTab)
 
   // Category CRUD
   const handleAddCategory = async () => {
@@ -108,6 +125,7 @@ export default function AdminDashboard() {
     const payload: Record<string, unknown> = {
       name: newCategoryName.trim(),
       section_type: newCategoryType,
+      type: newCategoryMenuType,
       order: maxOrder + 1,
     }
     if (newCategoryType === 'weekly' && newCategoryBasePrice) {
@@ -129,6 +147,7 @@ export default function AdminDashboard() {
     const payload: Record<string, unknown> = {
       name: editingCategoryName.trim(),
       section_type: editingCategoryType,
+      type: editingCategoryMenuType,
     }
     if (editingCategoryType === 'weekly' && editingCategoryBasePrice) {
       payload.base_price = parseFloat(editingCategoryBasePrice)
@@ -142,6 +161,7 @@ export default function AdminDashboard() {
     setCategories(categories.map(c => c.id === id ? { ...c, ...payload, base_price: payload.base_price ?? null } as Category : c))
     setMenuItems(menuItems.map(i => i.category === old.name ? { ...i, category: editingCategoryName.trim() } : i))
     setEditingCategory(null)
+    setEditingCategoryMenuType('cibo')
   }
 
   const handleDeleteCategory = async (id: string) => {
@@ -240,7 +260,7 @@ export default function AdminDashboard() {
       <nav className="sticky top-0 z-20 bg-secondary/20 backdrop-blur-sm border-b border-secondary/20 overflow-x-auto">
         <div className="flex justify-start sm:justify-center gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto px-4 py-3">
           {TABS.map((tab) => {
-            const count = sortedCategories.filter(c => tabForCat(c.name) === tab.id).length
+            const count = sortedCategories.filter((c) => tabForCat(c.name, c.type) === tab.id).length
             if (count === 0) return null
             return (
               <button
@@ -289,6 +309,15 @@ export default function AdminDashboard() {
                 <option key={t.value} value={t.value}>{t.label}</option>
               ))}
             </select>
+            <select
+              value={newCategoryMenuType}
+              onChange={(e) => setNewCategoryMenuType(e.target.value)}
+              className="w-full px-3 py-2 border border-stone-200 rounded-lg text-base bg-white"
+            >
+              {CATEGORY_TYPES.map((type) => (
+                <option key={type.value} value={type.value}>{type.label}</option>
+              ))}
+            </select>
             {newCategoryType === 'weekly' && (
               <input
                 type="number"
@@ -301,7 +330,7 @@ export default function AdminDashboard() {
             )}
             <div className="flex gap-2">
               <button onClick={handleAddCategory} disabled={!newCategoryName.trim()} className="bg-primary text-white px-4 py-2 rounded-lg disabled:opacity-50 hover:bg-[#003D5A] font-semibold">Aggiungi</button>
-              <button onClick={() => { setShowAddCategory(false); setNewCategoryName(''); setNewCategoryType('ala_carte'); setNewCategoryBasePrice('') }} className="bg-stone-200 px-4 py-2 rounded-lg hover:bg-stone-300">Annulla</button>
+              <button onClick={() => { setShowAddCategory(false); setNewCategoryName(''); setNewCategoryType('ala_carte'); setNewCategoryMenuType('cibo'); setNewCategoryBasePrice('') }} className="bg-stone-200 px-4 py-2 rounded-lg hover:bg-stone-300">Annulla</button>
             </div>
           </div>
         )}
@@ -334,6 +363,15 @@ export default function AdminDashboard() {
                         <option key={t.value} value={t.value}>{t.label}</option>
                       ))}
                     </select>
+                    <select
+                      value={editingCategoryMenuType}
+                      onChange={(e) => setEditingCategoryMenuType(e.target.value)}
+                      className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm bg-white"
+                    >
+                      {CATEGORY_TYPES.map((type) => (
+                        <option key={type.value} value={type.value}>{type.label}</option>
+                      ))}
+                    </select>
                     {editingCategoryType === 'weekly' && (
                       <input
                         type="number"
@@ -358,7 +396,16 @@ export default function AdminDashboard() {
                       </div>
                       <h2
                         className="text-xl sm:text-2xl md:text-3xl font-serif text-primary tracking-wide leading-tight cursor-pointer hover:opacity-70"
-                        onClick={() => { const c = categories.find(cat2 => cat2.id === cat.id); if (c) { setEditingCategory(c.id); setEditingCategoryName(c.name); setEditingCategoryType(c.section_type || 'ala_carte'); setEditingCategoryBasePrice(c.base_price?.toString() || '') }}}
+                        onClick={() => {
+                          const c = categories.find(cat2 => cat2.id === cat.id)
+                          if (c) {
+                            setEditingCategory(c.id)
+                            setEditingCategoryName(c.name)
+                            setEditingCategoryType(c.section_type || 'ala_carte')
+                            setEditingCategoryMenuType(c.type || 'cibo')
+                            setEditingCategoryBasePrice(c.base_price?.toString() || '')
+                          }
+                        }}
                       >
                         {cat.name}
                       </h2>
@@ -368,7 +415,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex items-center justify-center gap-3 mt-1">
                       <span className="text-xs text-stone-400">{catItems.length} piatti</span>
-                      <button onClick={() => { setEditingCategory(cat.id); setEditingCategoryName(cat.name); setEditingCategoryType(cat.section_type || 'ala_carte'); setEditingCategoryBasePrice(cat.base_price?.toString() || '') }} className="text-xs text-stone-400 hover:text-primary">Modifica</button>
+                      <button onClick={() => { setEditingCategory(cat.id); setEditingCategoryName(cat.name); setEditingCategoryType(cat.section_type || 'ala_carte'); setEditingCategoryMenuType(cat.type || 'cibo'); setEditingCategoryBasePrice(cat.base_price?.toString() || '') }} className="text-xs text-stone-400 hover:text-primary">Modifica</button>
                       <button onClick={() => handleDeleteCategory(cat.id)} className="text-xs text-red-400 hover:text-red-600">Elimina</button>
                     </div>
                   </>

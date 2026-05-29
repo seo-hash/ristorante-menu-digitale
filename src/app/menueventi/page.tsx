@@ -14,39 +14,45 @@ const montserrat = Montserrat({
 
 export const dynamic = 'force-dynamic'
 
+function sectionId(section: MenuSection) {
+  return section.title.toLowerCase().replace(/\s+/g, '-')
+}
+
 function renderSection(item: MenuDisplayItem) {
   if (item.type === 'group') {
     return <GroupedMenuSection key={item.id} group={item as MenuSectionGroup} />
   }
 
   const section = item as MenuSection
+  const id = sectionId(section)
 
-  switch (section.type) {
-    case 'weekly':
-      return <WeeklyMenuCard key={section.id} section={section} />
-    case 'buffet':
-      return <SimpleListSection key={section.id} section={section} />
-    default:
-      return <StandardMenuSection key={section.id} section={section} />
-  }
+  return (
+    <section key={section.id} id={id}>
+      {section.type === 'weekly' ? (
+        <WeeklyMenuCard section={section} />
+      ) : section.type === 'buffet' ? (
+        <SimpleListSection section={section} />
+      ) : (
+        <StandardMenuSection section={section} />
+      )}
+    </section>
+  )
 }
 
-export default async function MenuBarPage() {
-  const items = await getPublicMenu('bar')
+export default async function MenuEventiPage() {
+  const items = await getPublicMenu('eventi')
 
   return (
     <MenuPageLayout
-      title="Bar & Colazione"
+      title="Menu Eventi"
       navItems={[
-        { href: '/menu/bar', label: 'Bar & Colazione', active: true },
-        { href: '/menuristorante', label: 'Ristorante' },
-        { href: '/menu/vini', label: 'Vini & Bevande' },
-        { href: '/menu/proteico', label: 'Menu Proteico' },
+        { href: '#young-menu', label: 'Young Menu' },
+        { href: '#buffet', label: 'Buffet Menu' },
       ]}
     >
       {items.length === 0 ? (
         <p className="text-center text-gray-500 text-sm sm:text-base md:text-lg px-4">
-          Il menu bar è in aggiornamento, torna presto!
+          Il menu eventi è in aggiornamento, torna presto!
         </p>
       ) : (
         items.map((item) => renderSection(item))

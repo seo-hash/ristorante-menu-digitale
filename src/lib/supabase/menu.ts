@@ -34,6 +34,7 @@ const RESTAURANT_TITLES = new Set(['Antipasto', 'Primi', 'Secondi', 'Contorni', 
 const BAR_TITLES = new Set(['Bar & Colazione', 'Croissant', 'Crostata', 'Toast', 'Piadine'])
 const EVENT_TITLES = new Set(['Young Menu', 'Buffet'])
 const VINI_TITLES = new Set(['Vini', 'Cocktail', 'Bevande'])
+const PROTEICO_TITLES = new Set(['Menu Proteico'])
 
 function toMenuItem(row: SupabaseItem): MenuItem {
   return {
@@ -56,8 +57,15 @@ function isCategoryVisibleForArea(cat: SupabaseCategory, area: string) {
   if (cat.name === 'Menu Dipendente') return false
 
   if (area === 'all') {
-    return !EVENT_TITLES.has(cat.name) && cat.type !== 'eventi'
+    return (
+      cat.name !== 'Menu Proteico' &&
+      !EVENT_TITLES.has(cat.name) &&
+      !BAR_TITLES.has(cat.name) &&
+      !VINI_TITLES.has(cat.name) &&
+      (cat.type === 'cibo' || RESTAURANT_TITLES.has(cat.name))
+    )
   }
+  if (area === 'proteico') return cat.name === 'Menu Proteico' || cat.type === 'proteico'
   if (area === 'cibo') return cat.type === 'cibo' || RESTAURANT_TITLES.has(cat.name)
   if (area === 'vini') return cat.type === 'vini' || VINI_TITLES.has(cat.name)
   if (area === 'bar') return cat.type === 'bar' || BAR_TITLES.has(cat.name)
@@ -68,7 +76,7 @@ function isCategoryVisibleForArea(cat: SupabaseCategory, area: string) {
       ['weekly', 'buffet'].includes(cat.section_type ?? '')
     )
   }
-  return true
+  return false
 }
 
 export async function getPublicMenu(area: string): Promise<MenuDisplayItem[]> {
@@ -81,7 +89,7 @@ export async function getPublicMenu(area: string): Promise<MenuDisplayItem[]> {
       .order('order', { ascending: true })
 
     if (catError || !categories) {
-      return area === 'all' ? buildFromStatic() : []
+      return buildFromStatic(area)
     }
 
     const { data: items, error: itemsError } = await supabase
@@ -90,7 +98,7 @@ export async function getPublicMenu(area: string): Promise<MenuDisplayItem[]> {
       .eq('available', true)
 
     if (itemsError || !items) {
-      return area === 'all' ? buildFromStatic() : []
+      return buildFromStatic(area)
     }
 
     const publicItems = items.filter(
@@ -154,16 +162,23 @@ export async function getPublicMenu(area: string): Promise<MenuDisplayItem[]> {
 
     return result
   } catch {
-    return area === 'all' ? buildFromStatic() : []
+    return buildFromStatic(area)
   }
 }
 
-function buildFromStatic(): MenuDisplayItem[] {
+function buildFromStatic(area: string = 'all'): MenuDisplayItem[] {
   const standalone: MenuSection[] = []
   const grouped = new Map<string, MenuSection[]>()
 
   for (const s of MENU_DATA) {
-    if (s.title === 'Menu Dipendente' || EVENT_TITLES.has(s.title)) continue
+    if (!isCategoryVisibleForArea({
+      id: s.id,
+      name: s.title,
+      section_type: s.type === 'weekly' || s.type === 'buffet' || s.type === 'employee' ? s.type : null,
+      base_price: s.basePrice ?? null,
+      order: s.order,
+      type: s.type ?? null,
+    }, area)) continue
 
     const groupInfo = GROUP_MAP[s.title]
     if (groupInfo) {

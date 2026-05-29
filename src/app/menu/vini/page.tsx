@@ -1,79 +1,56 @@
-import { createClient } from '@/lib/supabase-server'
-import MenuSection from '@/components/MenuSection'
+﻿import { Montserrat } from 'next/font/google'
+import { getPublicMenu } from '@/lib/supabase/menu'
+import MenuPageLayout from '@/components/menu/MenuPageLayout'
+import GroupedMenuSection from '@/components/menu/GroupedMenuSection'
+import WeeklyMenuCard from '@/components/menu/WeeklyMenuCard'
+import SimpleListSection from '@/components/menu/SimpleListSection'
+import StandardMenuSection from '@/components/menu/StandardMenuSection'
+import type { MenuDisplayItem, MenuSection, MenuSectionGroup } from '@/types/menu'
 
-interface MenuItem {
-  id: string
-  category: string
-  name: string
-  description: string | null
-  price: number
-  available: boolean
-}
-
-interface Category {
-  name: string
-  order: number
-}
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export const dynamic = 'force-dynamic'
 
+function renderSection(item: MenuDisplayItem) {
+  if (item.type === 'group') {
+    return <GroupedMenuSection key={item.id} group={item as MenuSectionGroup} />
+  }
+
+  const section = item as MenuSection
+
+  switch (section.type) {
+    case 'weekly':
+      return <WeeklyMenuCard key={section.id} section={section} />
+    case 'buffet':
+      return <SimpleListSection key={section.id} section={section} />
+    default:
+      return <StandardMenuSection key={section.id} section={section} />
+  }
+}
+
 export default async function MenuViniPage() {
-  const supabase = await createClient()
-
-  const { data: categories } = await supabase
-    .from('category_order')
-    .select('name, order')
-    .eq('type', 'vini')
-    .order('order', { ascending: true })
-
-  const { data: menuItems } = await supabase
-    .from('menu_items')
-    .select('*')
-    .eq('available', true)
-
-  const groupedMenu = (menuItems || []).reduce((acc, item: MenuItem) => {
-    if (!acc[item.category]) acc[item.category] = []
-    acc[item.category].push(item)
-    return acc
-  }, {} as Record<string, MenuItem[]>)
-
-  const { data: { session } } = await supabase.auth.getSession()
-
-  const orderedCategories = (categories || []).map((c: Category) => ({
-    name: c.name,
-    items: groupedMenu[c.name] || []
-  })).filter(c => c.items.length > 0)
+  const items = await getPublicMenu('vini')
 
   return (
-    <main className="min-h-screen bg-cream">
-      {session && (
-        <div className="bg-dark text-white py-2 px-3 text-center text-xs sm:text-sm flex flex-col sm:flex-row justify-between items-center gap-1">
-          <span>Modalità admin</span>
-          <a href="/admin/dashboard" className="text-secondary hover:text-white underline">Torna all'editor →</a>
-        </div>
+    <MenuPageLayout
+      title="Menu Vini & Bevande"
+      navItems={[
+        { href: '/menu/bar', label: 'Bar & Colazione' },
+        { href: '/menuristorante', label: 'Ristorante' },
+        { href: '/menu/vini', label: 'Vini & Bevande', active: true },
+        { href: '/menu/proteico', label: 'Menu Proteico' },
+      ]}
+    >
+      {items.length === 0 ? (
+        <p className="text-center text-gray-500 text-sm sm:text-base md:text-lg px-4">
+          La carta vini è in aggiornamento, torna presto!
+        </p>
+      ) : (
+        items.map((item) => renderSection(item))
       )}
-      <header className="bg-primary text-white py-5 sm:py-6 px-4 text-center">
-        <img src="/logo.png" alt="Logo" className="h-16 sm:h-20 md:h-24 lg:h-28 mx-auto mb-1" />
-        <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary">Menu Vini & Bevande</p>
-      </header>
-
-      <nav className="bg-secondary/20 px-4 py-3 text-center sticky top-0 z-10 backdrop-blur-sm">
-        <div className="flex justify-center gap-3 sm:gap-4 md:gap-6">
-          <a href="/menu/cibo" className="text-gray-600 hover:text-primary transition-colors text-sm sm:text-base">Cucina</a>
-          <a href="/menu/vini" className="text-primary font-semibold border-b-2 border-primary pb-1 text-sm sm:text-base">Vini & Bevande</a>
-        </div>
-      </nav>
-
-      <section className="max-w-4xl mx-auto px-2 sm:px-4 py-6 sm:py-8 md:py-12">
-        {orderedCategories.length === 0 ? (
-          <p className="text-center text-gray-500 text-sm sm:text-base md:text-lg px-4">Carta vini in aggiornamento, torna presto!</p>
-        ) : (
-          orderedCategories.map(({ name, items }) => (
-            <MenuSection key={name} category={name} items={items} />
-          ))
-        )}
-      </section>
-
-    </main>
+    </MenuPageLayout>
   )
 }

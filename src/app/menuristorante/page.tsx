@@ -31,22 +31,22 @@ function renderSection(item: MenuDisplayItem) {
   }
 }
 
-export default async function MenuBarPage() {
-  const items = await getPublicMenu('bar')
+export default async function MenuRistorantePage() {
+  const items = await getPublicMenu('all')
 
   return (
     <MenuPageLayout
-      title="Bar & Colazione"
+      title="Menu Ristorante"
       navItems={[
-        { href: '/menu/bar', label: 'Bar & Colazione', active: true },
-        { href: '/menuristorante', label: 'Ristorante' },
+        { href: '/menu/bar', label: 'Bar & Colazione' },
+        { href: '/menuristorante', label: 'Ristorante', active: true },
         { href: '/menu/vini', label: 'Vini & Bevande' },
         { href: '/menu/proteico', label: 'Menu Proteico' },
       ]}
     >
       {items.length === 0 ? (
         <p className="text-center text-gray-500 text-sm sm:text-base md:text-lg px-4">
-          Il menu bar è in aggiornamento, torna presto!
+          Il menu ristorante è in aggiornamento, torna presto!
         </p>
       ) : (
         items.map((item) => renderSection(item))

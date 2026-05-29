@@ -1,14 +1,20 @@
-import { getStaffMenu } from '@/lib/supabase/menu'
+﻿import { Montserrat } from 'next/font/google'
+import { getStaffDipendenteMenu } from '@/lib/supabase/menu'
 import MenuPageLayout from '@/components/menu/MenuPageLayout'
 import StandardMenuSection from '@/components/menu/StandardMenuSection'
 import type { MenuSection } from '@/types/menu'
 
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  display: 'swap',
+})
+
 export const dynamic = 'force-dynamic'
 
-export default async function StaffMenuProteicoPage() {
-  const menuByDay = await getStaffMenu()
+export default async function MenuDipendentiPage() {
+  const menuByDay = await getStaffDipendenteMenu()
   const sections: MenuSection[] = menuByDay.map((day) => ({
-    id: `proteico-${day.day.toLowerCase().replace(/\s+/g, '-')}`,
+    id: `dipendente-${day.day.toLowerCase().replace(/\s+/g, '-')}`,
     title: day.day,
     type: 'employee',
     basePrice: 5.5,
@@ -20,10 +26,10 @@ export default async function StaffMenuProteicoPage() {
   }))
 
   return (
-    <MenuPageLayout title="Menu Proteico" subtitle="Pagina riservata al personale, prezzo fisso 5,50€.">
+    <MenuPageLayout title="Menu Dipendenti" subtitle="Pagina riservata al personale, prezzo fisso 5,50€.">
       {sections.length === 0 ? (
         <p className="text-center text-gray-500 text-sm sm:text-base md:text-lg px-4">
-          Nessun menu proteico disponibile al momento.
+          Nessun menu dipendente disponibile al momento.
         </p>
       ) : (
         sections.map((section) => <StandardMenuSection key={section.id} section={section} />)

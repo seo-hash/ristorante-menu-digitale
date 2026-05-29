@@ -1,10 +1,10 @@
 ﻿import { Montserrat } from 'next/font/google'
 import { getPublicMenu } from '@/lib/supabase/menu'
 import MenuPageLayout from '@/components/menu/MenuPageLayout'
-import GroupedMenuSection from '@/components/menu/GroupedMenuSection'
 import WeeklyMenuCard from '@/components/menu/WeeklyMenuCard'
 import SimpleListSection from '@/components/menu/SimpleListSection'
 import StandardMenuSection from '@/components/menu/StandardMenuSection'
+import EmployeeMenuSection from '@/components/menu/EmployeeMenuSection'
 import type { MenuDisplayItem, MenuSection, MenuSectionGroup } from '@/types/menu'
 
 const montserrat = Montserrat({
@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
 
 function renderSection(item: MenuDisplayItem) {
   if (item.type === 'group') {
-    return <GroupedMenuSection key={item.id} group={item as MenuSectionGroup} />
+    return <div key={item.id} />
   }
 
   const section = item as MenuSection
@@ -26,27 +26,29 @@ function renderSection(item: MenuDisplayItem) {
       return <WeeklyMenuCard key={section.id} section={section} />
     case 'buffet':
       return <SimpleListSection key={section.id} section={section} />
+    case 'employee':
+      return <EmployeeMenuSection key={section.id} section={section} />
     default:
       return <StandardMenuSection key={section.id} section={section} />
   }
 }
 
-export default async function MenuBarPage() {
-  const items = await getPublicMenu('bar')
+export default async function MenuProteicoPage() {
+  const items = await getPublicMenu('proteico')
 
   return (
     <MenuPageLayout
-      title="Bar & Colazione"
+      title="Menu Proteico"
       navItems={[
-        { href: '/menu/bar', label: 'Bar & Colazione', active: true },
+        { href: '/menu/bar', label: 'Bar & Colazione' },
         { href: '/menuristorante', label: 'Ristorante' },
         { href: '/menu/vini', label: 'Vini & Bevande' },
-        { href: '/menu/proteico', label: 'Menu Proteico' },
+        { href: '/menu/proteico', label: 'Menu Proteico', active: true },
       ]}
     >
       {items.length === 0 ? (
         <p className="text-center text-gray-500 text-sm sm:text-base md:text-lg px-4">
-          Il menu bar è in aggiornamento, torna presto!
+          Il menu proteico è in aggiornamento, torna presto!
         </p>
       ) : (
         items.map((item) => renderSection(item))

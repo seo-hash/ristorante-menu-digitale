@@ -12,6 +12,11 @@ export default function StandardMenuSection({ section }: StandardMenuSectionProp
       <div className="text-center mb-5 sm:mb-6 md:mb-8 px-2">
         <h2 className="text-xl sm:text-2xl md:text-3xl font-serif text-primary tracking-wide leading-tight">
           {section.title}
+          {section.type !== 'employee' && section.basePrice != null && (
+            <span className="text-primary/60 ml-3 text-lg sm:text-xl md:text-2xl font-normal italic">
+              € {section.basePrice.toFixed(2)}
+            </span>
+          )}
         </h2>
         <div className="flex items-center justify-center gap-2 sm:gap-3 mt-2">
           <div className="h-px bg-secondary/50 w-10 sm:w-12 md:w-16" />
@@ -20,33 +25,41 @@ export default function StandardMenuSection({ section }: StandardMenuSectionProp
         </div>
       </div>
       <div className="space-y-4 sm:space-y-5 md:space-y-6 px-2 sm:px-0">
-        {section.items.map((item) => (
-          <div key={item.id}>
-            <div className="flex justify-between items-start gap-2 sm:gap-4">
-              <div className="flex-1 min-w-0 pr-2 sm:pr-4">
-                <h3 className="text-sm sm:text-base md:text-lg font-serif font-semibold text-dark tracking-wide leading-snug break-words">
-                  {item.name}
-                </h3>
-                {item.description && (
-                  <p className="text-gray-500 mt-0.5 sm:mt-1 text-xs sm:text-sm md:text-base italic font-light leading-snug break-words">
-                    {item.description}
-                  </p>
+        {section.items.map((item) => {
+          const displayPrice =
+            item.price != null && item.price > 0
+              ? item.price
+              : section.basePrice != null && section.basePrice > 0
+              ? section.basePrice
+              : null
+
+          return (
+            <div key={item.id}>
+              <div className="flex justify-between items-start gap-2 sm:gap-4">
+                <div className="flex-1 min-w-0 pr-2 sm:pr-4">
+                  <h3 className="text-sm sm:text-base md:text-lg font-serif font-semibold text-dark tracking-wide leading-snug break-words">
+                    {item.name}
+                  </h3>
+                  {item.description && (
+                    <p className="text-gray-500 mt-0.5 sm:mt-1 text-xs sm:text-sm md:text-base italic font-light leading-snug break-words">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+                {displayPrice != null ? (
+                  <span className="text-sm sm:text-base md:text-lg font-serif font-semibold text-primary whitespace-nowrap flex-shrink-0">
+                    €{displayPrice.toFixed(2)}
+                  </span>
+                ) : (
+                  <span className="text-gray-400 text-xs sm:text-sm italic whitespace-nowrap flex-shrink-0">
+                    Vedi prezzi
+                  </span>
                 )}
               </div>
-              {item.price != null && item.price > 0 && (
-                <span className="text-sm sm:text-base md:text-lg font-serif font-semibold text-primary whitespace-nowrap flex-shrink-0">
-                  €{item.price.toFixed(2)}
-                </span>
-              )}
-              {item.price != null && item.price === 0 && (
-                <span className="text-gray-400 text-xs sm:text-sm italic whitespace-nowrap flex-shrink-0">
-                  Vedi prezzi
-                </span>
-              )}
+              <div className="h-px bg-gray-200 mt-3 sm:mt-4" />
             </div>
-            <div className="h-px bg-gray-200 mt-3 sm:mt-4" />
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
