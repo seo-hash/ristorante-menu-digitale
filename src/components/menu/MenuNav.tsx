@@ -1,52 +1,100 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import type { MenuDisplayItem, MenuSectionGroup } from '@/types/menu'
+import { useState } from 'react'
+import type { MenuDisplayItem, MenuSection, MenuSectionGroup } from '@/types/menu'
+import WeeklyMenuCard from '@/components/menu/WeeklyMenuCard'
+import BuffetMenuCard from '@/components/menu/BuffetMenuCard'
+import StandardMenuSection from '@/components/menu/StandardMenuSection'
+import GroupedMenuSection from '@/components/menu/GroupedMenuSection'
+
+type TabId = 'cucina' | 'bar' | 'young' | 'proteico' | 'vini'
+
+interface Tab {
+  id: TabId
+  label: string
+}
+
+const TABS: Tab[] = [
+  { id: 'cucina', label: 'Cucina' },
+  { id: 'bar', label: 'Bar & Colazione' },
+  { id: 'young', label: 'Young Menu' },
+  { id: 'proteico', label: 'Menu Proteico' },
+  { id: 'vini', label: 'Vini & Bevande' },
+]
+
+const CUCI_TITLES = new Set([
+  'Antipasto', 'Primi', 'Secondi', 'Contorni',
+  'Insalata da comporre', 'Piadine', 'Dolci',
+])
+
+function tabForItem(item: MenuDisplayItem): TabId | null {
+  if (item.type === 'group') return 'vini'
+  const section = item as MenuSection
+  if (section.title === 'Bar & Colazione') return 'bar'
+  if (section.title === 'Young Menu') return 'young'
+  if (section.title === 'Menu Proteico') return 'proteico'
+  if (CUCI_TITLES.has(section.title)) return 'cucina'
+  return null
+}
+
+function renderSection(item: MenuDisplayItem) {
+  if (item.type === 'group') {
+    return <GroupedMenuSection key={item.id} group={item as MenuSectionGroup} />
+  }
+  const section = item as MenuSection
+  switch (section.type) {
+    case 'weekly':
+      return <WeeklyMenuCard key={section.id} section={section} />
+    case 'buffet':
+      return <BuffetMenuCard key={section.id} section={section} />
+    default:
+      return <StandardMenuSection key={section.id} section={section} />
+  }
+}
 
 interface MenuNavProps {
   items: MenuDisplayItem[]
 }
 
-function getLabel(item: MenuDisplayItem): string {
-  if (item.type === 'group') return (item as MenuSectionGroup).title
-  return (item as import('@/types/menu').MenuSection).title
-}
-
 export default function MenuNav({ items }: MenuNavProps) {
-  const [active, setActive] = useState<string>('')
+  const [activeTab, setActiveTab] = useState<TabId>('cucina')
 
-  const labels = useMemo(() => {
-    return items.map((item) => ({
-      id: item.id,
-      label: getLabel(item),
-    }))
-  }, [items])
-
-  const handleClick = (id: string) => {
-    setActive(id)
-    const el = document.getElementById(`section-${id}`)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
+  const grouped = new Map<TabId, MenuDisplayItem[]>()
+  for (const tab of TABS) grouped.set(tab.id, [])
+  for (const item of items) {
+    const tab = tabForItem(item)
+    if (tab) grouped.get(tab)!.push(item)
   }
 
   return (
-    <nav className="sticky top-0 z-20 bg-iside/95 backdrop-blur-sm border-b border-stone-200 overflow-x-auto">
-      <div className="flex max-w-4xl mx-auto px-2 sm:px-4">
-        {labels.map(({ id, label }) => (
-          <button
-            key={id}
-            onClick={() => handleClick(id)}
-            className={`whitespace-nowrap px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold tracking-wider uppercase transition-colors flex-shrink-0 ${
-              active === id
-                ? 'text-iside-primary border-b-2 border-iside-primary'
-                : 'text-stone-500 hover:text-iside-primary'
-            }`}
-          >
-            {label}
-          </button>
+    <div>
+      <nav className="sticky top-0 z-20 bg-iside/95 backdrop-blur-sm border-b border-stone-200 overflow-x-auto">
+        <div className="flex max-w-4xl mx-auto px-2 sm:px-4">
+          {TABS.map((tab) => {
+            const count = grouped.get(tab.id)?.length ?? 0
+            if (count === 0) return null
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`whitespace-nowrap px-3 sm:px-5 py-3 text-xs sm:text-sm font-bold tracking-[0.15em] uppercase transition-colors flex-shrink-0 ${
+                  activeTab === tab.id
+                    ? 'text-iside-primary border-b-2 border-iside-primary'
+                    : 'text-stone-500 hover:text-iside-primary'
+                }`}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+      </nav>
+
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16 space-y-14">
+        {(grouped.get(activeTab) ?? []).map((item) => (
+          <div key={item.id}>{renderSection(item)}</div>
         ))}
-      </div>
-    </nav>
+      </section>
+    </div>
   )
 }
