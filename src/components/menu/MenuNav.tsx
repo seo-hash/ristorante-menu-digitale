@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import type { MenuDisplayItem, MenuSection, MenuSectionGroup } from '@/types/menu'
 import WeeklyMenuCard from '@/components/menu/WeeklyMenuCard'
-import BuffetMenuCard from '@/components/menu/BuffetMenuCard'
+import EmployeeMenuSection from '@/components/menu/EmployeeMenuSection'
+import SimpleListSection from '@/components/menu/SimpleListSection'
 import StandardMenuSection from '@/components/menu/StandardMenuSection'
 import GroupedMenuSection from '@/components/menu/GroupedMenuSection'
 
-type TabId = 'cucina' | 'bar' | 'young' | 'proteico' | 'vini'
+type TabId = 'cucina' | 'bar' | 'young' | 'proteico' | 'dipendente' | 'vini'
 
 interface Tab {
   id: TabId
@@ -19,20 +20,26 @@ const TABS: Tab[] = [
   { id: 'bar', label: 'Bar & Colazione' },
   { id: 'young', label: 'Young Menu' },
   { id: 'proteico', label: 'Menu Proteico' },
+  { id: 'dipendente', label: 'Menu Dipendente' },
   { id: 'vini', label: 'Vini & Bevande' },
 ]
 
 const CUCI_TITLES = new Set([
   'Antipasto', 'Primi', 'Secondi', 'Contorni',
-  'Insalata da comporre', 'Piadine', 'Dolci',
+  'Insalata da comporre', 'Dolci',
+])
+
+const BAR_TITLES = new Set([
+  'Bar & Colazione', 'Croissant', 'Crostata', 'Toast', 'Piadine',
 ])
 
 function tabForItem(item: MenuDisplayItem): TabId | null {
   if (item.type === 'group') return 'vini'
   const section = item as MenuSection
-  if (section.title === 'Bar & Colazione') return 'bar'
+  if (BAR_TITLES.has(section.title)) return 'bar'
   if (section.title === 'Young Menu') return 'young'
   if (section.title === 'Menu Proteico') return 'proteico'
+  if (section.title === 'Menu Dipendente') return 'dipendente'
   if (CUCI_TITLES.has(section.title)) return 'cucina'
   return null
 }
@@ -46,7 +53,9 @@ function renderSection(item: MenuDisplayItem) {
     case 'weekly':
       return <WeeklyMenuCard key={section.id} section={section} />
     case 'buffet':
-      return <BuffetMenuCard key={section.id} section={section} />
+      return <SimpleListSection key={section.id} section={section} />
+    case 'employee':
+      return <EmployeeMenuSection key={section.id} section={section} />
     default:
       return <StandardMenuSection key={section.id} section={section} />
   }
@@ -68,8 +77,8 @@ export default function MenuNav({ items }: MenuNavProps) {
 
   return (
     <div>
-      <nav className="sticky top-0 z-20 bg-iside-secondary/20 backdrop-blur-sm overflow-x-auto">
-        <div className="flex justify-center gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto px-4 py-3">
+      <nav className="sticky top-0 z-20 bg-secondary/20 backdrop-blur-sm border-b border-secondary/20 overflow-x-auto">
+        <div className="flex justify-start sm:justify-center gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto px-4 py-3">
           {TABS.map((tab) => {
             const count = grouped.get(tab.id)?.length ?? 0
             if (count === 0) return null
@@ -77,10 +86,10 @@ export default function MenuNav({ items }: MenuNavProps) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`whitespace-nowrap text-sm sm:text-base transition-colors flex-shrink-0 ${
+                className={`whitespace-nowrap text-sm sm:text-base transition-colors flex-shrink-0 min-h-[44px] flex items-center ${
                   activeTab === tab.id
-                    ? 'text-iside-primary font-semibold border-b-2 border-iside-primary pb-1'
-                    : 'text-gray-600 hover:text-iside-primary'
+                    ? 'text-primary font-semibold border-b-2 border-primary'
+                    : 'text-gray-600 hover:text-primary'
                 }`}
               >
                 {tab.label}

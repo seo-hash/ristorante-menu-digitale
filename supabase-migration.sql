@@ -2,7 +2,7 @@
 -- e basePrice/day per sezioni/piatti speciali
 
 -- Aggiungi colonne a category_order
-ALTER TABLE category_order ADD COLUMN IF NOT EXISTS section_type TEXT DEFAULT 'ala_carte' CHECK (section_type IN ('ala_carte', 'weekly', 'buffet'));
+ALTER TABLE category_order ADD COLUMN IF NOT EXISTS section_type TEXT DEFAULT 'ala_carte' CHECK (section_type IN ('ala_carte', 'weekly', 'buffet', 'employee'));
 ALTER TABLE category_order ADD COLUMN IF NOT EXISTS base_price DECIMAL(10, 2);
 
 -- Aggiungi colonna day a menu_items (per Menu Proteico)

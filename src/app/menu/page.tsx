@@ -13,11 +13,15 @@ export default async function MenuPage() {
   const items = await getMenuData()
 
   return (
-    <main className={`${montserrat.className} flex-1 bg-iside`}>
-      <header className="bg-iside-primary text-white py-12 sm:py-14 text-center px-4">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-[0.15em] uppercase">
-          Il Nostro Menu
-        </h1>
+    <main className={`${montserrat.className} flex-1 bg-cream`}>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(){var t=new Date().getTime();if(!location.search.includes('_t=')){location.replace(location.pathname+'?_t='+t)}})()`,
+        }}
+      />
+      <header className="bg-primary text-white py-5 sm:py-6 px-4 text-center">
+        <img src="/logo.png" alt="Logo" className="h-16 sm:h-20 md:h-24 lg:h-28 mx-auto mb-1" />
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary">Menu Digitale</p>
       </header>
 
       <MenuNav items={items} />

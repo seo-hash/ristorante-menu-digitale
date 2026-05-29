@@ -1,4 +1,4 @@
-export type MenuType = 'ala_carte' | 'weekly' | 'buffet' | 'group'
+export type MenuType = 'ala_carte' | 'weekly' | 'buffet' | 'employee' | 'group'
 
 export interface MenuItem {
   id: string

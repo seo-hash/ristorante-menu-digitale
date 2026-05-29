@@ -27,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it" suppressHydrationWarning>
-      <body className={`${montserrat.className} min-h-screen bg-iside flex flex-col`} suppressHydrationWarning>
+      <body className={`${montserrat.className} min-h-screen flex flex-col overflow-x-hidden`} suppressHydrationWarning>
         {children}
         <Footer />
       </body>

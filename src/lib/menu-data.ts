@@ -75,17 +75,51 @@ export const MENU_DATA: MenuSection[] = [
     items: [
       { id: uid(), name: 'Caffè', price: 1.00 },
       { id: uid(), name: 'Cappuccino', price: 2.00 },
-      { id: uid(), name: 'Croissant', description: 'Gocce di cioccolato, Cereali e miele, Vuoto, Treccia alle noci', price: 1.50 },
-      { id: uid(), name: 'Crostata', description: 'Al cioccolato, Albicocca o Ciliegia', price: 2.50 },
       { id: uid(), name: 'Torta di mele', price: 2.50 },
-      { id: uid(), name: 'Toast', description: 'Prosciutto cotto/crudo e formaggio, Bresaola, Uovo, Tacchino', price: 2.50 },
+    ],
+  },
+  {
+    id: 'croissant',
+    title: 'Croissant',
+    type: 'ala_carte',
+    order: 6,
+    items: [
+      { id: uid(), name: 'Vuoto', price: 1.50 },
+      { id: uid(), name: 'Gocce al cioccolato', price: 1.50 },
+      { id: uid(), name: 'Cereali e miele', price: 1.50 },
+      { id: uid(), name: 'Treccia alle noci', price: 1.50 },
+    ],
+  },
+  {
+    id: 'crostata',
+    title: 'Crostata',
+    type: 'ala_carte',
+    order: 7,
+    items: [
+      { id: uid(), name: 'Al cioccolato', price: 2.50 },
+      { id: uid(), name: 'Albicocca', price: 2.50 },
+      { id: uid(), name: 'Ciliegia', price: 2.50 },
+    ],
+  },
+  {
+    id: 'toast',
+    title: 'Toast',
+    type: 'ala_carte',
+    order: 8,
+    items: [
+      { id: uid(), name: 'Prosciutto cotto e formaggio', price: 2.50 },
+      { id: uid(), name: 'Prosciutto crudo e formaggio', price: 2.50 },
+      { id: uid(), name: 'Bresaola, formaggio e scaglie di grana', price: 2.50 },
+      { id: uid(), name: 'Uovo, formaggio, lattuga e pomodoro', price: 2.50 },
+      { id: uid(), name: 'Tacchino, formaggio, lattuga e pomodoro', price: 2.50 },
+      { id: uid(), name: 'Supplemento', price: 1.00 },
     ],
   },
   {
     id: 'piadine',
     title: 'Piadine',
     type: 'ala_carte',
-    order: 6,
+    order: 9,
     items: [
       { id: uid(), name: 'Piadina P.Cotto', description: 'Formaggio, lattuga e pomodoro', price: 6.50 },
       { id: uid(), name: 'Piadina P.Crudo', description: 'Formaggio, lattuga e pomodoro', price: 6.50 },
@@ -99,7 +133,7 @@ export const MENU_DATA: MenuSection[] = [
     id: 'dolci',
     title: 'Dolci',
     type: 'ala_carte',
-    order: 7,
+    order: 10,
     items: [
       { id: uid(), name: 'Torta di mela', price: 3.00 },
       { id: uid(), name: 'Torta di ricotta e pera', price: 3.00 },
@@ -112,9 +146,9 @@ export const MENU_DATA: MenuSection[] = [
   {
     id: 'proteico',
     title: 'Menu Proteico',
-    type: 'weekly',
+    type: 'employee',
     basePrice: 5.50,
-    order: 8,
+    order: 11,
     items: [
       { id: uid(), name: 'Uova sode', description: 'Con contorno di zucchine e riso bianco', price: null, day: 'Lunedì' },
       { id: uid(), name: 'Pennette integrali', description: 'Con tagliata di pollo e pomodorino fresco', price: null, day: 'Martedì' },
@@ -127,7 +161,7 @@ export const MENU_DATA: MenuSection[] = [
     id: 'young',
     title: 'Young Menu',
     type: 'buffet',
-    order: 9,
+    order: 12,
     items: [
       { id: uid(), name: 'Aperitivo Cocktail Bar', price: null, description: 'Chips, Cocktail analcolici, Succhi, Acqua, Coca Cola' },
       { id: uid(), name: 'Cena a Buffet', price: null, description: 'Arancinette, Pizzette miste, Paninetti farciti, Paninetto hamburger vitello, Nugget pollo, Panino cotoletta' },
@@ -135,10 +169,24 @@ export const MENU_DATA: MenuSection[] = [
     ],
   },
   {
+    id: 'dipendente',
+    title: 'Menu Dipendente',
+    type: 'employee',
+    basePrice: 5.50,
+    order: 13,
+    items: [
+      { id: uid(), name: 'Crudo e melone', price: null, day: 'Lunedì' },
+      { id: uid(), name: 'Piatto Iside: crostino di pane di segale, salmone mais e avocado', price: null, day: 'Martedì' },
+      { id: uid(), name: 'Insalata di riso con tonno', price: null, day: 'Mercoledì' },
+      { id: uid(), name: 'Pollo al pane saporito e insalata di ciliegino', price: null, day: 'Giovedì' },
+      { id: uid(), name: 'Pinsa con mozzarella e prosciutto cotto all\'uscita', price: null, day: 'Venerdì' },
+    ],
+  },
+  {
     id: 'vini',
     title: 'Vini',
     type: 'ala_carte',
-    order: 10,
+    order: 14,
     items: [
       { id: uid(), name: "Barone Montalto - Nero d'Avola", price: 18.00 },
       { id: uid(), name: 'Barone Montalto - Grillo', price: 16.00 },
@@ -150,7 +198,7 @@ export const MENU_DATA: MenuSection[] = [
     id: 'cocktail',
     title: 'Cocktail',
     type: 'ala_carte',
-    order: 11,
+    order: 15,
     items: [
       { id: uid(), name: 'Cocktail Classici', price: 7.00 },
     ],
@@ -159,7 +207,7 @@ export const MENU_DATA: MenuSection[] = [
     id: 'bevande',
     title: 'Bevande',
     type: 'ala_carte',
-    order: 12,
+    order: 16,
     items: [
       { id: uid(), name: 'Acqua 0,5 l', price: 1.00 },
       { id: uid(), name: 'Acqua 1 l', price: 2.00 },

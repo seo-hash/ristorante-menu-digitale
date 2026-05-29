@@ -24,26 +24,59 @@ interface Category {
 
 const SECTION_TYPES = [
   { value: 'ala_carte', label: 'Standard' },
-  { value: 'weekly', label: 'Settimanale (Menu Proteico)' },
-  { value: 'buffet', label: 'Buffet (Young Menu)' },
+  { value: 'weekly', label: 'Settimanale' },
+  { value: 'buffet', label: 'Buffet' },
+  { value: 'employee', label: 'Employee' },
 ] as const
 
 const DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
+
+type TabId = 'cucina' | 'bar' | 'young' | 'proteico' | 'dipendente' | 'vini'
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: 'cucina', label: 'Cucina' },
+  { id: 'bar', label: 'Bar & Colazione' },
+  { id: 'young', label: 'Young Menu' },
+  { id: 'proteico', label: 'Menu Proteico' },
+  { id: 'dipendente', label: 'Menu Dipendente' },
+  { id: 'vini', label: 'Vini & Bevande' },
+]
+
+const CUCI_TITLES = new Set(['Antipasto', 'Primi', 'Secondi', 'Contorni', 'Insalata da comporre', 'Dolci'])
+const BAR_TITLES = new Set(['Bar & Colazione', 'Croissant', 'Crostata', 'Toast', 'Piadine'])
+const GRP_TITLES = new Set(['Vini', 'Cocktail', 'Bevande'])
+
+function tabForCat(name: string): TabId | null {
+  if (CUCI_TITLES.has(name)) return 'cucina'
+  if (BAR_TITLES.has(name)) return 'bar'
+  if (name === 'Young Menu') return 'young'
+  if (name === 'Menu Proteico') return 'proteico'
+  if (name === 'Menu Dipendente') return 'dipendente'
+  if (GRP_TITLES.has(name)) return 'vini'
+  return null
+}
 
 export default function AdminDashboard() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<TabId>('cucina')
+
+  // category editing state
   const [editingCategory, setEditingCategory] = useState<string | null>(null)
   const [editingCategoryName, setEditingCategoryName] = useState('')
   const [editingCategoryType, setEditingCategoryType] = useState('ala_carte')
   const [editingCategoryBasePrice, setEditingCategoryBasePrice] = useState('')
+
+  // add category state
   const [showAddCategory, setShowAddCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryType, setNewCategoryType] = useState('ala_carte')
   const [newCategoryBasePrice, setNewCategoryBasePrice] = useState('')
+
+  // item editing state
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
-  const [openCategoryForAdd, setOpenCategoryForAdd] = useState<string | null>(null)
+  const [addingToCategory, setAddingToCategory] = useState<string | null>(null)
   const [itemForm, setItemForm] = useState({ name: '', description: '', price: '', day: '', available: true })
 
   const supabase = createClient()
@@ -51,7 +84,6 @@ export default function AdminDashboard() {
   const fetchData = useCallback(async () => {
     const { data: items } = await supabase.from('menu_items').select('*')
     const { data: cats } = await supabase.from('category_order').select('*').order('order', { ascending: true })
-
     if (items) setMenuItems(items)
     if (cats) setCategories(cats)
     setLoading(false)
@@ -67,6 +99,9 @@ export default function AdminDashboard() {
 
   const sortedCategories = [...categories].sort((a, b) => a.order - b.order)
 
+  const tabCategories = sortedCategories.filter(c => tabForCat(c.name) === activeTab)
+
+  // Category CRUD
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return
     const maxOrder = categories.reduce((max, c) => Math.max(max, c.order), -1)
@@ -109,13 +144,6 @@ export default function AdminDashboard() {
     setEditingCategory(null)
   }
 
-  const startEditCategory = (cat: Category) => {
-    setEditingCategory(cat.id)
-    setEditingCategoryName(cat.name)
-    setEditingCategoryType(cat.section_type || 'ala_carte')
-    setEditingCategoryBasePrice(cat.base_price?.toString() || '')
-  }
-
   const handleDeleteCategory = async (id: string) => {
     if (!confirm('Eliminare questa sezione e tutti i suoi piatti?')) return
     const cat = categories.find(c => c.id === id)
@@ -136,10 +164,11 @@ export default function AdminDashboard() {
     fetchData()
   }
 
+  // Item CRUD
   const handleSaveItem = async (category: string) => {
     if (!itemForm.name.trim()) return
     const cat = categories.find(c => c.name === category)
-    const isWeekly = cat?.section_type === 'weekly'
+    const hasDay = cat?.section_type === 'weekly' || cat?.section_type === 'employee'
     const data: Record<string, unknown> = {
       category,
       name: itemForm.name.trim(),
@@ -147,7 +176,7 @@ export default function AdminDashboard() {
       price: itemForm.price ? parseFloat(itemForm.price) : 0,
       available: itemForm.available,
     }
-    if (isWeekly && itemForm.day) {
+    if (hasDay && itemForm.day) {
       data.day = itemForm.day
     } else {
       data.day = null
@@ -163,13 +192,14 @@ export default function AdminDashboard() {
 
   const handleEditItem = (item: MenuItem) => {
     const cat = categories.find(c => c.name === item.category)
+    const hasDay = cat?.section_type === 'weekly' || cat?.section_type === 'employee'
     setEditingItemId(item.id)
-    setOpenCategoryForAdd(item.category)
+    setAddingToCategory(item.category)
     setItemForm({
       name: item.name,
       description: item.description || '',
       price: item.price > 0 ? item.price.toString() : '',
-      day: cat?.section_type === 'weekly' ? (item.day || '') : '',
+      day: hasDay ? (item.day || '') : '',
       available: item.available,
     })
   }
@@ -182,40 +212,71 @@ export default function AdminDashboard() {
 
   const resetItemForm = () => {
     setEditingItemId(null)
-    setOpenCategoryForAdd(null)
+    setAddingToCategory(null)
     setItemForm({ name: '', description: '', price: '', day: '', available: true })
   }
 
   const handleLogout = async () => { await supabase.auth.signOut(); window.location.href = '/admin/login' }
 
-  if (loading) return <div className="min-h-screen bg-iside flex items-center justify-center"><p className="text-xl font-montserrat">Caricamento...</p></div>
+  if (loading) return (
+    <div className="min-h-screen bg-cream flex items-center justify-center">
+      <p className="text-xl font-serif text-primary">Caricamento...</p>
+    </div>
+  )
 
   return (
-    <main className="min-h-screen bg-iside">
-      <header className="bg-iside-primary text-white py-4 px-6 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg">I</div>
-          <span className="text-lg sm:text-xl font-bold tracking-wider hidden sm:inline">Editor Menu</span>
+    <main className="min-h-screen bg-cream">
+      {/* HEADER — same style as public menu */}
+      <header className="bg-primary text-white py-4 sm:py-5 px-4 text-center relative">
+        <div className="absolute right-4 top-4 flex gap-3 items-center">
+          <Link href="/menu" className="text-white/70 hover:text-white text-xs sm:text-sm">Vedi Menu</Link>
+          <button onClick={handleLogout} className="text-red-300 hover:text-red-200 text-xs sm:text-sm">Esci</button>
         </div>
-        <div className="flex gap-4 items-center">
-          <Link href="/menu" className="text-white/70 hover:text-white text-sm">Vedi Menu Pubblico</Link>
-          <button onClick={handleLogout} className="text-red-300 hover:text-red-200 text-sm">Esci</button>
-        </div>
+        <img src="/logo.png" alt="Logo" className="h-12 sm:h-16 mx-auto mb-1" />
+        <p className="text-sm sm:text-base text-secondary">Menu Digitale <span className="text-white/40 text-xs ml-2">Admin</span></p>
       </header>
 
-      <section className="max-w-4xl mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-iside-primary">Tutte le Sezioni</h2>
-          <button onClick={() => setShowAddCategory(true)} className="bg-iside-primary text-white px-4 py-2 rounded-lg hover:bg-iside-primary/90 text-sm font-semibold">+ Nuova Sezione</button>
+      {/* TAB NAV — same as MenuNav */}
+      <nav className="sticky top-0 z-20 bg-secondary/20 backdrop-blur-sm border-b border-secondary/20 overflow-x-auto">
+        <div className="flex justify-start sm:justify-center gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto px-4 py-3">
+          {TABS.map((tab) => {
+            const count = sortedCategories.filter(c => tabForCat(c.name) === tab.id).length
+            if (count === 0) return null
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`whitespace-nowrap text-sm sm:text-base transition-colors flex-shrink-0 min-h-[44px] flex items-center ${
+                  activeTab === tab.id
+                    ? 'text-primary font-semibold border-b-2 border-primary'
+                    : 'text-gray-600 hover:text-primary'
+                }`}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+      </nav>
+
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        {/* Add section button */}
+        <div className="flex justify-center mb-8">
+          <button
+            onClick={() => setShowAddCategory(true)}
+            className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-[#003D5A] text-sm font-semibold"
+          >
+            + Nuova Sezione
+          </button>
         </div>
 
         {showAddCategory && (
-          <div className="bg-white rounded-xl shadow-sm border border-stone-100 p-4 mb-4 space-y-3">
+          <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4 mb-6 space-y-3 max-w-md mx-auto">
             <input
               type="text"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
-              placeholder="Nome sezione (es. Antipasti, Vini...)"
+              placeholder="Nome sezione"
               className="w-full px-3 py-2 border border-stone-200 rounded-lg text-base"
               autoFocus
             />
@@ -234,103 +295,179 @@ export default function AdminDashboard() {
                 step="0.01"
                 value={newCategoryBasePrice}
                 onChange={(e) => setNewCategoryBasePrice(e.target.value)}
-                placeholder="Prezzo base (€, es. 5.50)"
+                placeholder="Prezzo base (€)"
                 className="w-full px-3 py-2 border border-stone-200 rounded-lg text-base"
               />
             )}
             <div className="flex gap-2">
-              <button onClick={handleAddCategory} disabled={!newCategoryName.trim()} className="bg-iside-primary text-white px-4 py-2 rounded-lg disabled:opacity-50 hover:bg-iside-primary/90 font-semibold">Aggiungi</button>
+              <button onClick={handleAddCategory} disabled={!newCategoryName.trim()} className="bg-primary text-white px-4 py-2 rounded-lg disabled:opacity-50 hover:bg-[#003D5A] font-semibold">Aggiungi</button>
               <button onClick={() => { setShowAddCategory(false); setNewCategoryName(''); setNewCategoryType('ala_carte'); setNewCategoryBasePrice('') }} className="bg-stone-200 px-4 py-2 rounded-lg hover:bg-stone-300">Annulla</button>
             </div>
           </div>
         )}
 
-        {sortedCategories.map((cat, idx) => {
+        {/* Sections for this tab */}
+        {tabCategories.map((cat) => {
           const catItems = groupedMenu[cat.name] || []
-          const isWeekly = cat.section_type === 'weekly'
+          const hasDay = cat.section_type === 'weekly' || cat.section_type === 'employee'
+          const isBuffet = cat.section_type === 'buffet'
 
           return (
-            <div key={cat.id} className="bg-white rounded-xl shadow-sm border border-stone-100 mb-4 overflow-hidden">
-              <div className="bg-iside px-4 py-3 flex items-center justify-between border-b border-stone-200">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="flex flex-col gap-0.5">
-                    <button onClick={() => handleMoveCategory(cat.id, 'up')} disabled={idx === 0} className="text-stone-400 hover:text-iside-primary disabled:opacity-20 text-xs leading-none min-w-[36px] min-h-[28px] flex items-center justify-center rounded">▲</button>
-                    <button onClick={() => handleMoveCategory(cat.id, 'down')} disabled={idx === sortedCategories.length - 1} className="text-stone-400 hover:text-iside-primary disabled:opacity-20 text-xs leading-none min-w-[36px] min-h-[28px] flex items-center justify-center rounded">▼</button>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    {editingCategory === cat.id ? (
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          value={editingCategoryName}
-                          onChange={(e) => setEditingCategoryName(e.target.value)}
-                          className="font-bold text-base px-2 py-1 border border-stone-200 rounded w-full"
-                          autoFocus
-                        />
-                        <select
-                          value={editingCategoryType}
-                          onChange={(e) => setEditingCategoryType(e.target.value)}
-                          className="w-full px-2 py-1 border border-stone-200 rounded text-sm bg-white"
-                        >
-                          {SECTION_TYPES.map((t) => (
-                            <option key={t.value} value={t.value}>{t.label}</option>
-                          ))}
-                        </select>
-                        {editingCategoryType === 'weekly' && (
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={editingCategoryBasePrice}
-                            onChange={(e) => setEditingCategoryBasePrice(e.target.value)}
-                            placeholder="Prezzo base (€)"
-                            className="w-full px-2 py-1 border border-stone-200 rounded text-sm"
-                          />
-                        )}
-                        <div className="flex gap-2">
-                          <button onClick={() => handleUpdateCategory(cat.id)} className="bg-iside-primary text-white px-3 py-1 rounded text-sm">Salva</button>
-                          <button onClick={() => setEditingCategory(null)} className="bg-stone-200 px-3 py-1 rounded text-sm">Annulla</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3
-                            className="font-bold text-iside-primary text-base cursor-pointer hover:opacity-70"
-                            onClick={() => startEditCategory(cat)}
-                          >
-                            {cat.name}
-                          </h3>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            isWeekly ? 'bg-amber-100 text-amber-700' :
-                            cat.section_type === 'buffet' ? 'bg-emerald-100 text-emerald-700' :
-                            'bg-stone-100 text-stone-500'
-                          }`}>
-                            {isWeekly ? 'Settimanale' : cat.section_type === 'buffet' ? 'Buffet' : 'Standard'}
-                          </span>
-                          {cat.base_price != null && (
-                            <span className="text-xs text-stone-400">€ {cat.base_price.toFixed(2)}</span>
-                          )}
-                          <span className="text-stone-400 text-xs">({catItems.length} piatti)</span>
-                        </div>
-                      </>
+            <div key={cat.id} className="mb-10 sm:mb-12 last:mb-0">
+              {/* SECTION HEADER — editable */}
+              <div className="text-center mb-4 sm:mb-5 px-2">
+                {editingCategory === cat.id ? (
+                  <div className="space-y-2 max-w-sm mx-auto">
+                    <input
+                      type="text"
+                      value={editingCategoryName}
+                      onChange={(e) => setEditingCategoryName(e.target.value)}
+                      className="text-center w-full px-3 py-2 border border-stone-200 rounded-lg text-lg font-serif"
+                      autoFocus
+                    />
+                    <select
+                      value={editingCategoryType}
+                      onChange={(e) => setEditingCategoryType(e.target.value)}
+                      className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm bg-white"
+                    >
+                      {SECTION_TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                    {editingCategoryType === 'weekly' && (
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editingCategoryBasePrice}
+                        onChange={(e) => setEditingCategoryBasePrice(e.target.value)}
+                        placeholder="Prezzo base (€)"
+                        className="w-full px-3 py-2 border border-stone-200 rounded text-sm"
+                      />
                     )}
+                    <div className="flex gap-2 justify-center">
+                      <button onClick={() => handleUpdateCategory(cat.id)} className="bg-primary text-white px-4 py-1.5 rounded text-sm">Salva</button>
+                      <button onClick={() => setEditingCategory(null)} className="bg-stone-200 px-4 py-1.5 rounded text-sm">Annulla</button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <button onClick={() => setOpenCategoryForAdd(openCategoryForAdd === cat.name ? null : cat.name)} className="text-iside-primary hover:opacity-70 text-sm font-semibold">+ Aggiungi</button>
-                  <button onClick={() => handleDeleteCategory(cat.id)} className="text-red-500 hover:text-red-700 text-sm">Elimina</button>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-center gap-2 flex-wrap mb-1">
+                      <div className="flex gap-0.5">
+                        <button onClick={() => handleMoveCategory(cat.id, 'up')} disabled={sortedCategories.findIndex(c => c.id === cat.id) === 0} className="text-stone-400 hover:text-primary disabled:opacity-20 text-xs leading-none min-w-[28px] min-h-[24px] flex items-center justify-center rounded">▲</button>
+                        <button onClick={() => handleMoveCategory(cat.id, 'down')} disabled={sortedCategories.findIndex(c => c.id === cat.id) === sortedCategories.length - 1} className="text-stone-400 hover:text-primary disabled:opacity-20 text-xs leading-none min-w-[28px] min-h-[24px] flex items-center justify-center rounded">▼</button>
+                      </div>
+                      <h2
+                        className="text-xl sm:text-2xl md:text-3xl font-serif text-primary tracking-wide leading-tight cursor-pointer hover:opacity-70"
+                        onClick={() => { const c = categories.find(cat2 => cat2.id === cat.id); if (c) { setEditingCategory(c.id); setEditingCategoryName(c.name); setEditingCategoryType(c.section_type || 'ala_carte'); setEditingCategoryBasePrice(c.base_price?.toString() || '') }}}
+                      >
+                        {cat.name}
+                      </h2>
+                      {cat.base_price != null && (
+                        <span className="text-primary/60 text-base sm:text-lg font-serif italic">€ {cat.base_price.toFixed(2)}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-center gap-3 mt-1">
+                      <span className="text-xs text-stone-400">{catItems.length} piatti</span>
+                      <button onClick={() => { setEditingCategory(cat.id); setEditingCategoryName(cat.name); setEditingCategoryType(cat.section_type || 'ala_carte'); setEditingCategoryBasePrice(cat.base_price?.toString() || '') }} className="text-xs text-stone-400 hover:text-primary">Modifica</button>
+                      <button onClick={() => handleDeleteCategory(cat.id)} className="text-xs text-red-400 hover:text-red-600">Elimina</button>
+                    </div>
+                  </>
+                )}
+                <div className="flex items-center justify-center gap-2 sm:gap-3 mt-2">
+                  <div className="h-px bg-secondary/50 w-10 sm:w-12 md:w-16" />
+                  <div className="w-1.5 h-1.5 bg-secondary rounded-full flex-shrink-0" />
+                  <div className="h-px bg-secondary/50 w-10 sm:w-12 md:w-16" />
                 </div>
               </div>
 
-              {openCategoryForAdd === cat.name && (
-                <div className="p-4 bg-stone-50 border-b border-stone-200">
-                  <h4 className="font-semibold text-sm text-iside-primary mb-3">{editingItemId ? 'Modifica Piatto' : 'Nuovo Piatto'}</h4>
-                  <div className="grid grid-cols-2 gap-3 mb-3">
+              {/* ITEMS */}
+              <div className="space-y-4 sm:space-y-5 px-2 sm:px-0">
+                {catItems.map((item) => {
+                  const isEditing = editingItemId === item.id
+
+                  if (isEditing) {
+                    return (
+                      <div key={item.id} className="bg-white rounded-lg border border-stone-200 p-4 space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <input type="text" value={itemForm.name} onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })} placeholder="Nome *" className="px-3 py-2 border border-stone-200 rounded-lg text-base" />
+                          {!hasDay && (
+                            <input type="number" step="0.01" value={itemForm.price} onChange={(e) => setItemForm({ ...itemForm, price: e.target.value })} placeholder="Prezzo (€)" className="px-3 py-2 border border-stone-200 rounded-lg text-base" />
+                          )}
+                          {hasDay && (
+                            <select value={itemForm.day} onChange={(e) => setItemForm({ ...itemForm, day: e.target.value })} className="px-3 py-2 border border-stone-200 rounded-lg text-base bg-white">
+                              <option value="">Seleziona giorno</option>
+                              {DAYS.map((d) => (
+                                <option key={d} value={d}>{d}</option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                        <input type="text" value={itemForm.description} onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })} placeholder="Descrizione (opzionale)" className="w-full px-3 py-2 border border-stone-200 rounded-lg text-base" />
+                        <label className="flex items-center gap-2 cursor-pointer text-sm">
+                          <input type="checkbox" checked={itemForm.available} onChange={(e) => setItemForm({ ...itemForm, available: e.target.checked })} />
+                          Disponibile
+                        </label>
+                        <div className="flex gap-2">
+                          <button onClick={() => handleSaveItem(cat.name)} disabled={!itemForm.name.trim() || (hasDay && !itemForm.day)} className="bg-primary text-white px-4 py-2 rounded-lg disabled:opacity-50 hover:bg-[#003D5A] font-semibold">Salva</button>
+                          <button onClick={resetItemForm} className="bg-stone-200 px-4 py-2 rounded-lg hover:bg-stone-300">Annulla</button>
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  // Display: same style as frontend components
+                  return (
+                    <div key={item.id}>
+                      <div className="flex justify-between items-start gap-2 sm:gap-4">
+                        <div className="flex-1 min-w-0 pr-2 sm:pr-4">
+                          {hasDay && item.day && (
+                            <span className="font-serif text-primary text-xs sm:text-sm font-bold tracking-widest uppercase block mb-1">
+                              {item.day}
+                            </span>
+                          )}
+                          <h3 className={`text-sm sm:text-base md:text-lg font-serif font-semibold text-dark tracking-wide leading-snug break-words ${!item.available ? 'opacity-40' : ''}`}>
+                            {item.name}
+                          </h3>
+                          {!isBuffet && item.description && (
+                            <p className="text-gray-500 mt-0.5 sm:mt-1 text-xs sm:text-sm italic font-light leading-snug break-words">
+                              {item.description}
+                            </p>
+                          )}
+                          {isBuffet && item.description && (
+                            <div className="mt-1 space-y-0.5">
+                              {item.description.split(',').map((s, i) => (
+                                <p key={i} className="text-gray-500 text-xs sm:text-sm font-light leading-snug">{s.trim()}</p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {!hasDay && item.price > 0 && (
+                          <span className="text-sm sm:text-base md:text-lg font-serif font-semibold text-primary whitespace-nowrap flex-shrink-0">
+                            €{item.price.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <button onClick={() => handleEditItem(item)} className="text-xs text-stone-400 hover:text-primary">Modifica</button>
+                        <button onClick={() => handleDeleteItem(item.id)} className="text-xs text-red-400 hover:text-red-600">Elimina</button>
+                        {!item.available && <span className="text-xs text-stone-400 italic">Non disp.</span>}
+                      </div>
+                      <div className="h-px bg-gray-200 mt-3 sm:mt-4" />
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Add item to this section */}
+              {addingToCategory === cat.name && editingItemId === null ? (
+                <div className="mt-4 bg-white rounded-lg border border-stone-200 p-4 space-y-3">
+                  <h4 className="font-semibold text-sm text-primary">Nuovo Piatto</h4>
+                  <div className="grid grid-cols-2 gap-3">
                     <input type="text" value={itemForm.name} onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })} placeholder="Nome *" className="px-3 py-2 border border-stone-200 rounded-lg text-base" />
-                    {!isWeekly && (
+                    {!hasDay && (
                       <input type="number" step="0.01" value={itemForm.price} onChange={(e) => setItemForm({ ...itemForm, price: e.target.value })} placeholder="Prezzo (€)" className="px-3 py-2 border border-stone-200 rounded-lg text-base" />
                     )}
-                    {isWeekly && (
+                    {hasDay && (
                       <select value={itemForm.day} onChange={(e) => setItemForm({ ...itemForm, day: e.target.value })} className="px-3 py-2 border border-stone-200 rounded-lg text-base bg-white">
                         <option value="">Seleziona giorno</option>
                         {DAYS.map((d) => (
@@ -339,57 +476,34 @@ export default function AdminDashboard() {
                       </select>
                     )}
                   </div>
-                  <input type="text" value={itemForm.description} onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })} placeholder="Descrizione (opzionale)" className="w-full px-3 py-2 border border-stone-200 rounded-lg mb-3 text-base" />
-                  <label className="flex items-center gap-2 cursor-pointer text-sm mb-3">
+                  <input type="text" value={itemForm.description} onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })} placeholder="Descrizione (opzionale)" className="w-full px-3 py-2 border border-stone-200 rounded-lg text-base" />
+                  <label className="flex items-center gap-2 cursor-pointer text-sm">
                     <input type="checkbox" checked={itemForm.available} onChange={(e) => setItemForm({ ...itemForm, available: e.target.checked })} />
                     Disponibile
                   </label>
                   <div className="flex gap-2">
-                    <button onClick={() => handleSaveItem(cat.name)} disabled={!itemForm.name.trim() || (isWeekly && !itemForm.day)} className="bg-iside-primary text-white px-4 py-2 rounded-lg disabled:opacity-50 hover:bg-iside-primary/90 font-semibold">{editingItemId ? 'Salva' : 'Aggiungi'}</button>
+                    <button onClick={() => handleSaveItem(cat.name)} disabled={!itemForm.name.trim() || (hasDay && !itemForm.day)} className="bg-primary text-white px-4 py-2 rounded-lg disabled:opacity-50 hover:bg-[#003D5A] font-semibold">Aggiungi</button>
                     <button onClick={resetItemForm} className="bg-stone-200 px-4 py-2 rounded-lg hover:bg-stone-300">Annulla</button>
                   </div>
                 </div>
+              ) : (
+                <div className="text-center mt-4">
+                  <button
+                    onClick={() => { setAddingToCategory(cat.name); resetItemForm() }}
+                    className="text-primary hover:opacity-70 text-sm font-semibold"
+                  >
+                    + Aggiungi piatto
+                  </button>
+                </div>
               )}
-
-              <div className="divide-y divide-stone-100">
-                {catItems.map((item) => {
-                  const itemCat = categories.find(c => c.name === item.category)
-                  const itemIsWeekly = itemCat?.section_type === 'weekly'
-
-                  return (
-                    <div key={item.id} className="px-4 py-3 flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          {itemIsWeekly && item.day && (
-                            <span className="text-xs font-bold text-iside-primary uppercase min-w-[60px]">{item.day}</span>
-                          )}
-                          <span className={`font-medium text-sm ${!item.available ? 'opacity-40' : ''}`}>{item.name}</span>
-                          {!item.available && <span className="text-xs text-stone-400 italic">Non disp.</span>}
-                        </div>
-                        {item.description && <p className="text-xs text-stone-500 italic mt-0.5">{item.description}</p>}
-                      </div>
-                      {item.price > 0 && (
-                        <span className="font-bold text-iside-primary text-sm mr-4 whitespace-nowrap">€{item.price.toFixed(2)}</span>
-                      )}
-                      <div className="flex gap-2 flex-shrink-0">
-                        <button onClick={() => handleEditItem(item)} className="text-iside-primary hover:opacity-70 text-sm">Modifica</button>
-                        <button onClick={() => handleDeleteItem(item.id)} className="text-red-500 hover:text-red-700 text-sm">Elimina</button>
-                      </div>
-                    </div>
-                  )
-                })}
-                {catItems.length === 0 && (
-                  <div className="px-4 py-6 text-center text-stone-400 text-sm italic">Nessun piatto. Clicca &quot;+ Aggiungi&quot; per aggiungere.</div>
-                )}
-              </div>
             </div>
           )
         })}
 
-        {sortedCategories.length === 0 && (
+        {tabCategories.length === 0 && (
           <div className="text-center py-12 text-stone-400">
-            <p className="text-lg">Nessuna sezione creata</p>
-            <p className="text-sm mt-1">Clicca &quot;Nuova Sezione&quot; per iniziare</p>
+            <p className="text-lg font-serif">Nessuna sezione in questo tab</p>
+            <p className="text-sm mt-1">Clicca &quot;+ Nuova Sezione&quot; per aggiungerne una</p>
           </div>
         )}
       </section>
