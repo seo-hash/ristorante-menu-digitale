@@ -4,7 +4,6 @@ import MenuPageLayout from '@/components/menu/MenuPageLayout'
 import WeeklyMenuCard from '@/components/menu/WeeklyMenuCard'
 import SimpleListSection from '@/components/menu/SimpleListSection'
 import StandardMenuSection from '@/components/menu/StandardMenuSection'
-import EmployeeMenuSection from '@/components/menu/EmployeeMenuSection'
 import type { MenuDisplayItem, MenuSection, MenuSectionGroup } from '@/types/menu'
 
 const montserrat = Montserrat({
@@ -26,8 +25,6 @@ function renderSection(item: MenuDisplayItem) {
       return <WeeklyMenuCard key={section.id} section={section} />
     case 'buffet':
       return <SimpleListSection key={section.id} section={section} />
-    case 'employee':
-      return <EmployeeMenuSection key={section.id} section={section} />
     default:
       return <StandardMenuSection key={section.id} section={section} />
   }
@@ -38,9 +35,11 @@ export default async function MenuDipendentiPage() {
   const sections: MenuDisplayItem[] = menuByDay.map((day) => ({
     id: `dipendente-${day.day.toLowerCase().replace(/\s+/g, '-')}`,
     title: day.day,
-    type: 'employee' as const,
+    type: 'ala_carte' as const,
     items: day.items.map((item) => ({
-      ...item,
+      id: item.id,
+      name: item.name,
+      description: item.description,
       price: null,
     })),
     order: 0,

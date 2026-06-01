@@ -46,13 +46,9 @@ export default function StandardMenuSection({ section }: StandardMenuSectionProp
                     </p>
                   )}
                 </div>
-                {displayPrice != null ? (
+                {displayPrice != null && (
                   <span className="text-sm sm:text-base md:text-lg font-serif font-semibold text-primary whitespace-nowrap flex-shrink-0">
                     €{displayPrice.toFixed(2)}
-                  </span>
-                ) : (
-                  <span className="text-gray-400 text-xs sm:text-sm italic whitespace-nowrap flex-shrink-0">
-                    Vedi prezzi
                   </span>
                 )}
               </div>
