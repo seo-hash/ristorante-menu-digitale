@@ -94,8 +94,6 @@ export default function AdminDashboard() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [addingToCategory, setAddingToCategory] = useState<string | null>(null)
   const [itemForm, setItemForm] = useState({ name: '', description: '', price: '', day: '', available: true, allergens: '' })
-  const [aiSuggested, setAiSuggested] = useState<string | null>(null)
-  const [aiLoading, setAiLoading] = useState(false)
 
   const supabase = createClient()
 
@@ -463,76 +461,7 @@ export default function AdminDashboard() {
                         {showAllergens && (
                           <div className="space-y-2">
                             <label className="block text-xs text-stone-500 font-medium">Allergeni</label>
-                            <div className="flex gap-2">
-                              <input type="text" value={itemForm.allergens} onChange={(e) => setItemForm({ ...itemForm, allergens: e.target.value })} placeholder="Glutine, Latte, Uova..." className="flex-1 px-3 py-2 border border-stone-200 rounded-lg text-sm" />
-                              <button
-                                onClick={async () => {
-                                  if (!itemForm.name.trim()) return
-                                  setAiLoading(true)
-                                  setAiSuggested(null)
-                                  try {
-                                    const res = await fetch('/api/analyze-allergens-employee', {
-                                      method: 'POST',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ dishName: itemForm.name.trim() }),
-                                    })
-                                    const data = await res.json()
-                                    if (data.error) {
-                                      setAiSuggested('ERRORE: ' + data.error)
-                                    } else if (data.allergens && data.allergens.length > 0) {
-                                      setAiSuggested(data.allergens.join(', '))
-                                    } else {
-                                      setAiSuggested('ERRORE: Nessun allergene rilevato, riprova o inserisci manualmente')
-                                    }
-                                  } catch (err) {
-                                    setAiSuggested('ERRORE: Chiamata fallita, riprova')
-                                  } finally {
-                                    setAiLoading(false)
-                                  }
-                                }}
-                                className="bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-emerald-700 whitespace-nowrap disabled:opacity-50"
-                                disabled={aiLoading}
-                              >
-                                {aiLoading ? 'Analisi...' : 'AI Analizza'}
-                              </button>
-                            </div>
-                            {aiSuggested && (
-                              <div className={`border rounded-lg p-3 space-y-2 ${aiSuggested.startsWith('ERRORE:') ? 'bg-red-50 border-red-200' : 'bg-emerald-50 border-emerald-200'}`}>
-                                <p className={`text-xs font-medium ${aiSuggested.startsWith('ERRORE:') ? 'text-red-800' : 'text-emerald-800'}`}>
-                                  {aiSuggested.startsWith('ERRORE:') ? 'Errore analisi:' : 'Allergeni rilevati da AI:'}
-                                </p>
-                                <p className={`text-sm ${aiSuggested.startsWith('ERRORE:') ? 'text-red-900' : 'text-emerald-900'}`}>
-                                  {aiSuggested.replace('ERRORE: ', '')}
-                                </p>
-                                {!aiSuggested.startsWith('ERRORE:') && (
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => {
-                                        setItemForm({ ...itemForm, allergens: aiSuggested })
-                                        setAiSuggested(null)
-                                      }}
-                                      className="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-semibold hover:bg-emerald-700"
-                                    >
-                                      Accetta
-                                    </button>
-                                    <button
-                                      onClick={() => setAiSuggested(null)}
-                                      className="bg-stone-200 text-stone-700 px-3 py-1.5 rounded text-xs hover:bg-stone-300"
-                                    >
-                                      Rifiuta
-                                    </button>
-                                  </div>
-                                )}
-                                {aiSuggested.startsWith('ERRORE:') && (
-                                  <button
-                                    onClick={() => setAiSuggested(null)}
-                                    className="bg-stone-200 text-stone-700 px-3 py-1.5 rounded text-xs hover:bg-stone-300"
-                                  >
-                                    Chiudi
-                                  </button>
-                                )}
-                              </div>
-                            )}
+                            <input type="text" value={itemForm.allergens} onChange={(e) => setItemForm({ ...itemForm, allergens: e.target.value })} placeholder="Glutine, Latte, Uova..." className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm" />
                           </div>
                         )}
                         <div className="flex gap-2">
@@ -621,9 +550,7 @@ export default function AdminDashboard() {
                   {showAllergens && (
                     <div className="space-y-2">
                       <label className="block text-xs text-stone-500 font-medium">Allergeni</label>
-                      <div className="flex gap-2">
-                        <input type="text" value={itemForm.allergens} onChange={(e) => setItemForm({ ...itemForm, allergens: e.target.value })} placeholder="Glutine, Latte, Uova..." className="flex-1 px-3 py-2 border border-stone-200 rounded-lg text-sm" />
-                      </div>
+                      <input type="text" value={itemForm.allergens} onChange={(e) => setItemForm({ ...itemForm, allergens: e.target.value })} placeholder="Glutine, Latte, Uova..." className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm" />
                     </div>
                   )}
                   <div className="flex gap-2">
