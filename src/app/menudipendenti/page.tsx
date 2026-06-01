@@ -1,8 +1,11 @@
 ﻿import { Montserrat } from 'next/font/google'
 import { getStaffDipendenteMenu } from '@/lib/supabase/menu'
 import MenuPageLayout from '@/components/menu/MenuPageLayout'
+import WeeklyMenuCard from '@/components/menu/WeeklyMenuCard'
+import SimpleListSection from '@/components/menu/SimpleListSection'
+import StandardMenuSection from '@/components/menu/StandardMenuSection'
 import EmployeeMenuSection from '@/components/menu/EmployeeMenuSection'
-import type { MenuSection } from '@/types/menu'
+import type { MenuDisplayItem, MenuSection, MenuSectionGroup } from '@/types/menu'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -11,12 +14,31 @@ const montserrat = Montserrat({
 
 export const dynamic = 'force-dynamic'
 
+function renderSection(item: MenuDisplayItem) {
+  if (item.type === 'group') {
+    return <div key={item.id} />
+  }
+
+  const section = item as MenuSection
+
+  switch (section.type) {
+    case 'weekly':
+      return <WeeklyMenuCard key={section.id} section={section} />
+    case 'buffet':
+      return <SimpleListSection key={section.id} section={section} />
+    case 'employee':
+      return <EmployeeMenuSection key={section.id} section={section} />
+    default:
+      return <StandardMenuSection key={section.id} section={section} />
+  }
+}
+
 export default async function MenuDipendentiPage() {
   const menuByDay = await getStaffDipendenteMenu()
-  const sections: MenuSection[] = menuByDay.map((day) => ({
+  const sections: MenuDisplayItem[] = menuByDay.map((day) => ({
     id: `dipendente-${day.day.toLowerCase().replace(/\s+/g, '-')}`,
     title: day.day,
-    type: 'employee',
+    type: 'employee' as const,
     items: day.items.map((item) => ({
       ...item,
       price: null,
@@ -37,7 +59,7 @@ export default async function MenuDipendentiPage() {
           Nessun menu dipendente disponibile al momento.
         </p>
       ) : (
-        sections.map((section) => <EmployeeMenuSection key={section.id} section={section} />)
+        sections.map((item) => renderSection(item))
       )}
     </MenuPageLayout>
   )
