@@ -260,7 +260,7 @@ export default function AdminDashboard() {
       </header>
 
       {/* TAB NAV — same as MenuNav */}
-      <nav className="bg-[#ECE4D4] backdrop-blur-sm border-b border-secondary/20 overflow-x-auto fixed bottom-0 left-0 right-0 z-20 sm:sticky sm:top-0 sm:z-10 sm:bg-secondary/20">
+      <nav className="bg-primary text-[#ECE4D4] backdrop-blur-sm border-b border-primary/20 overflow-x-auto fixed bottom-0 left-0 right-0 z-20 sm:sticky sm:top-0 sm:z-10">
         <div className="flex justify-start sm:justify-center gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto px-4 py-3">
           {TABS.map((tab) => {
             const count = sortedCategories.filter((c) => tabForCat(c.name, c.type) === tab.id).length
@@ -271,8 +271,8 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`whitespace-nowrap text-sm sm:text-base transition-colors flex-shrink-0 min-h-[44px] flex items-center ${
                   activeTab === tab.id
-                    ? 'text-primary font-semibold border-b-2 border-primary'
-                    : 'text-gray-600 hover:text-primary'
+                    ? 'text-[#ECE4D4] font-semibold border-b-2 border-[#ECE4D4]'
+                    : 'text-[#ECE4D4]/70 hover:text-[#ECE4D4]'
                 }`}
               >
                 {tab.label}

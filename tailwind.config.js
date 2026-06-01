@@ -18,8 +18,7 @@ module.exports = {
       },
       fontFamily: {
         serif: ['Playfair Display', 'Georgia', 'serif'],
-        sans: ['Lato', 'system-ui', 'sans-serif'],
-        montserrat: ['Montserrat', 'system-ui', 'sans-serif'],
+        sans: ['Montserrat', 'system-ui', 'sans-serif'],
       },
     },
   },

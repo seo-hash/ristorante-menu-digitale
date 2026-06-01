@@ -30,11 +30,9 @@ export default function MenuPageLayout({ title, subtitle, navItems, customNav, b
         ) : null}
       </header>
 
-      {customNav && (
-        <div className="fixed bottom-0 left-0 right-0 z-10 sm:static sm:z-auto">{customNav}</div>
-      )}
+      {customNav}
       {navItems && navItems.length > 0 && !customNav && (
-        <nav className="bg-[#ECE4D4] px-4 py-3 text-center fixed bottom-0 left-0 right-0 z-10 sm:static sm:z-auto sm:sticky sm:top-0 sm:z-10 sm:bg-secondary/20 backdrop-blur-sm border-b border-secondary/20">
+        <nav className="bg-primary text-[#ECE4D4] px-4 py-3 text-center fixed bottom-0 left-0 right-0 z-10 sm:sticky sm:top-0 sm:z-10 backdrop-blur-sm border-b border-primary/20">
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6">
             {navItems.map((item) => (
               <Link
@@ -42,8 +40,8 @@ export default function MenuPageLayout({ title, subtitle, navItems, customNav, b
                 href={item.href}
                 className={
                   item.active
-                    ? 'text-primary font-semibold border-b-2 border-primary pb-1 text-sm sm:text-base'
-                    : 'text-gray-600 hover:text-primary transition-colors text-sm sm:text-base'
+                    ? 'text-[#ECE4D4] font-semibold border-b-2 border-[#ECE4D4] pb-1 text-sm sm:text-base'
+                    : 'text-[#ECE4D4]/70 hover:text-[#ECE4D4] transition-colors text-sm sm:text-base'
                 }
               >
                 {item.label}

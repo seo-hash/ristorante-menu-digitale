@@ -91,14 +91,14 @@ export default async function MenuEventiPage({ searchParams }: PageProps) {
   )
 
   const nav = (
-    <nav className="bg-[#ECE4D4] px-4 py-3 text-center backdrop-blur-sm border-b border-secondary/20 sm:bg-secondary/20 sm:sticky sm:top-0">
+    <nav className="bg-primary text-[#ECE4D4] px-4 py-3 text-center backdrop-blur-sm border-b border-primary/20 fixed bottom-0 left-0 right-0 z-10 sm:sticky sm:top-0 sm:z-10">
       <div className="flex justify-center gap-4 sm:gap-6 max-w-4xl mx-auto">
         <Link
           href="/menueventi"
           className={`text-sm sm:text-base transition-colors ${
             activeTab === 'young'
-              ? 'text-primary font-semibold border-b-2 border-primary pb-1'
-              : 'text-gray-600 hover:text-primary'
+              ? 'text-[#ECE4D4] font-semibold border-b-2 border-[#ECE4D4] pb-1'
+              : 'text-[#ECE4D4]/70 hover:text-[#ECE4D4]'
           }`}
         >
           Young Menu
@@ -107,8 +107,8 @@ export default async function MenuEventiPage({ searchParams }: PageProps) {
           href="/menueventi?tab=buffet"
           className={`text-sm sm:text-base transition-colors ${
             activeTab === 'buffet'
-              ? 'text-primary font-semibold border-b-2 border-primary pb-1'
-              : 'text-gray-600 hover:text-primary'
+              ? 'text-[#ECE4D4] font-semibold border-b-2 border-[#ECE4D4] pb-1'
+              : 'text-[#ECE4D4]/70 hover:text-[#ECE4D4]'
           }`}
         >
           Buffet Menu
