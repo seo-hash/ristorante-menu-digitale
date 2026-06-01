@@ -345,7 +345,7 @@ export default function AdminDashboard() {
             return dayOrder(a.day || '') - dayOrder(b.day || '')
           })
           const hasDay = cat.section_type === 'weekly' || cat.section_type === 'employee'
-          const showAllergens = activeTab === 'dipendente'
+          const showAllergens = true
           const isBuffet = cat.section_type === 'buffet'
 
           return (
