@@ -18,7 +18,7 @@ interface MenuPageLayoutProps {
 
 export default function MenuPageLayout({ title, subtitle, navItems, customNav, banner, children }: MenuPageLayoutProps) {
   return (
-    <main className="min-h-screen bg-cream">
+    <main className="min-h-screen bg-cream flex flex-col">
       {banner}
       <header className="bg-primary text-white py-6 px-4 text-center">
         <img src="/logo.png" alt="Logo" className="h-16 sm:h-20 md:h-24 lg:h-28 mx-auto mb-2" />
@@ -30,8 +30,11 @@ export default function MenuPageLayout({ title, subtitle, navItems, customNav, b
         ) : null}
       </header>
 
-      {customNav || (navItems && navItems.length > 0 ? (
-        <nav className="bg-secondary px-4 py-3 text-center sticky bottom-0 z-10 border-t sm:border-t-0 sm:border-b border-secondary/20 sm:bg-secondary/20 sm:sticky sm:top-0">
+      {customNav && (
+        <div className="order-last sm:order-none">{customNav}</div>
+      )}
+      {navItems && navItems.length > 0 && !customNav && (
+        <nav className="bg-secondary/20 px-4 py-3 text-center order-last sm:order-none sm:sticky sm:top-0 sm:z-10 backdrop-blur-sm border-b border-secondary/20">
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6">
             {navItems.map((item) => (
               <Link
@@ -48,7 +51,7 @@ export default function MenuPageLayout({ title, subtitle, navItems, customNav, b
             ))}
           </div>
         </nav>
-      ) : null)}
+      )}
 
       <section className="max-w-4xl mx-auto px-4 py-10 sm:px-6 sm:py-12">
         {children}

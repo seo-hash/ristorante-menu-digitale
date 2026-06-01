@@ -248,7 +248,7 @@ export default function AdminDashboard() {
   )
 
   return (
-    <main className="min-h-screen bg-cream">
+    <main className="min-h-screen bg-cream flex flex-col">
       {/* HEADER — same style as public menu */}
       <header className="bg-primary text-white py-4 sm:py-5 px-4 text-center relative">
         <div className="absolute right-4 top-4 flex gap-3 items-center">
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
       </header>
 
       {/* TAB NAV — same as MenuNav */}
-      <nav className="sticky bottom-0 z-20 bg-secondary border-t sm:border-t-0 sm:border-b border-secondary/20 overflow-x-auto sm:bg-secondary/20 sm:sticky sm:top-0">
+      <nav className="bg-secondary/20 backdrop-blur-sm border-b border-secondary/20 overflow-x-auto order-last sm:order-none sm:sticky sm:top-0 sm:z-10">
         <div className="flex justify-start sm:justify-center gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto px-4 py-3">
           {TABS.map((tab) => {
             const count = sortedCategories.filter((c) => tabForCat(c.name, c.type) === tab.id).length
