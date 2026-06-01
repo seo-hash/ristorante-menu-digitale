@@ -31,7 +31,7 @@ export default function MenuPageLayout({ title, subtitle, navItems, customNav, b
       </header>
 
       {customNav || (navItems && navItems.length > 0 ? (
-        <nav className="bg-secondary/20 px-4 py-3 text-center sticky bottom-0 z-10 backdrop-blur-sm border-t sm:border-t-0 sm:border-b border-secondary/20 sm:sticky sm:top-0">
+        <nav className="bg-secondary px-4 py-3 text-center sticky bottom-0 z-10 border-t sm:border-t-0 sm:border-b border-secondary/20 sm:bg-secondary/20 sm:sticky sm:top-0">
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6">
             {navItems.map((item) => (
               <Link

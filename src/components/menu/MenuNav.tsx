@@ -77,7 +77,7 @@ export default function MenuNav({ items }: MenuNavProps) {
 
   return (
     <div>
-      <nav className="sticky bottom-0 z-20 bg-secondary/20 backdrop-blur-sm border-t sm:border-t-0 sm:border-b border-secondary/20 overflow-x-auto sm:sticky sm:top-0">
+      <nav className="sticky bottom-0 z-20 bg-secondary border-t sm:border-t-0 sm:border-b border-secondary/20 overflow-x-auto sm:bg-secondary/20 sm:sticky sm:top-0">
         <div className="flex justify-start sm:justify-center gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto px-4 py-3">
           {TABS.map((tab) => {
             const count = grouped.get(tab.id)?.length ?? 0
