@@ -47,6 +47,15 @@ export default function WeeklyMenuCard({ section }: WeeklyMenuCardProps) {
                     {item.description}
                   </p>
                 )}
+                {item.allergens && item.allergens.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {item.allergens.map((a) => (
+                      <span key={a} className="text-[10px] uppercase tracking-wider text-stone-400 border border-stone-200 rounded-full px-1.5 py-0.5 leading-none">
+                        {a}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="h-px bg-gray-200 mt-3 sm:mt-4" />

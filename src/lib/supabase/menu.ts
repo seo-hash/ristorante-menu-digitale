@@ -20,6 +20,7 @@ interface SupabaseItem {
   day?: string | null
   available?: boolean | null
   display_area?: string | null
+  allergens?: string[] | null
 }
 
 const GROUP_MAP: Record<string, { groupTitle: string; groupOrder: number }> = {
@@ -43,6 +44,7 @@ function toMenuItem(row: SupabaseItem): MenuItem {
     description: row.description ?? undefined,
     price: row.price,
     day: row.day ?? undefined,
+    allergens: row.allergens ?? undefined,
   }
 }
 
@@ -94,7 +96,7 @@ export async function getPublicMenu(area: string): Promise<MenuDisplayItem[]> {
 
     const { data: items, error: itemsError } = await supabase
       .from('menu_items')
-      .select('id, category, name, description, price, day, available, display_area')
+      .select('id, category, name, description, price, day, available, display_area, allergens')
       .eq('available', true)
 
     if (itemsError || !items) {

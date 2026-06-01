@@ -6,6 +6,7 @@ export interface MenuItem {
   description?: string
   price: number | null
   day?: string
+  allergens?: string[]
 }
 
 export interface MenuSection {
