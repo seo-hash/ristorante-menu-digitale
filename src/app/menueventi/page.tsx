@@ -40,7 +40,7 @@ export default async function MenuEventiPage({ searchParams }: PageProps) {
   )
 
   const nav = (
-    <nav className="bg-primary text-[#ECE4D4] px-4 py-3 text-center backdrop-blur-sm border-b border-primary/20 sticky bottom-0 left-0 right-0 z-10 sm:sticky sm:top-0 sm:z-10">
+    <nav className="bg-primary text-[#ECE4D4] px-4 py-3 text-center backdrop-blur-sm border-b border-primary/20 sticky bottom-0 left-0 right-0 z-10 sm:sticky sm:top-0 sm:z-10 overflow-x-auto">
       <div className="flex justify-center gap-4 sm:gap-6 max-w-4xl mx-auto">
         <Link
           href="/menueventi"
