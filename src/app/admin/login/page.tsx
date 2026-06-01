@@ -34,8 +34,12 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream flex items-center justify-center px-4 py-8">
-      <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-sm sm:max-w-md">
+    <main className="relative min-h-screen flex items-center justify-center px-4 py-8 bg-black/40">
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat -z-10"
+        style={{ backgroundImage: 'url(/bg-login.jpg)' }}
+      />
+      <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-sm sm:max-w-md">
         <img src="/logo-login.png" alt="ISIDE" className="h-14 sm:h-20 mx-auto mb-1 sm:mb-2" />
         <p className="text-gray-600 text-center mb-6 sm:mb-8 text-sm sm:text-base">Area Riservata</p>
 
