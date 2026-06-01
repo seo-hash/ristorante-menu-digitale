@@ -52,13 +52,13 @@ function BuffetIsideSection() {
               <div className="h-px bg-secondary/50 w-10 sm:w-12 md:w-16" />
             </div>
           </div>
-          <div className="space-y-4 sm:space-y-5 md:space-y-6 px-2 sm:px-0 text-center">
+          <div className="space-y-4 sm:space-y-5 md:space-y-6 px-2 sm:px-0">
             {menuIside[category].map((item) => (
               <div key={item.id}>
-                <p className="text-sm sm:text-base md:text-lg font-serif font-bold text-dark tracking-wide leading-snug break-words uppercase">
+                <p className="text-sm sm:text-base md:text-lg font-serif font-semibold text-dark tracking-wide leading-snug break-words">
                   {item.name}
                 </p>
-                <div className="h-px bg-gray-200 mt-3 sm:mt-4 max-w-xs mx-auto" />
+                <div className="h-px bg-gray-200 mt-3 sm:mt-4" />
               </div>
             ))}
           </div>
@@ -87,56 +87,55 @@ export default function EventMenuTabs({ items }: EventMenuTabsProps) {
 
   return (
     <div>
-      <nav className="bg-secondary/20 px-4 py-3 text-center sticky top-0 z-10 backdrop-blur-sm border-b border-secondary/20">
-        <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6">
-          <button
-            onClick={() => setActiveTab('young')}
-            className={`text-sm sm:text-base transition-colors ${
-              activeTab === 'young'
-                ? 'text-primary font-semibold border-b-2 border-primary pb-1'
-                : 'text-gray-600 hover:text-primary'
-            }`}
-          >
-            Young Menu
-          </button>
-          <button
-            onClick={() => setActiveTab('buffet')}
-            className={`text-sm sm:text-base transition-colors ${
-              activeTab === 'buffet'
-                ? 'text-primary font-semibold border-b-2 border-primary pb-1'
-                : 'text-gray-600 hover:text-primary'
-            }`}
-          >
-            Buffet Menu
-          </button>
-        </div>
-      </nav>
+      <div className="flex justify-center gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-10 md:mb-12">
+        <button
+          onClick={() => setActiveTab('young')}
+          className={`text-sm sm:text-base transition-colors ${
+            activeTab === 'young'
+              ? 'text-primary font-semibold border-b-2 border-primary pb-1'
+              : 'text-gray-600 hover:text-primary'
+          }`}
+        >
+          Young Menu
+        </button>
+        <button
+          onClick={() => setActiveTab('buffet')}
+          className={`text-sm sm:text-base transition-colors ${
+            activeTab === 'buffet'
+              ? 'text-primary font-semibold border-b-2 border-primary pb-1'
+              : 'text-gray-600 hover:text-primary'
+          }`}
+        >
+          Buffet Menu
+        </button>
+      </div>
 
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-        {activeTab === 'young' ? (
-          youngItems.length === 0 ? (
-            <p className="text-center text-gray-500 text-sm sm:text-base md:text-lg px-4">
-              Nessun menu young disponibile al momento.
-            </p>
-          ) : (
-            <div className="space-y-14">{youngItems.map(renderDbSection)}</div>
-          )
+      {activeTab === 'young' ? (
+        youngItems.length === 0 ? (
+          <p className="text-center text-gray-500 text-sm sm:text-base md:text-lg px-4">
+            Nessun menu young disponibile al momento.
+          </p>
         ) : (
-          <div>
-            <div className="text-center mb-8 sm:mb-10 md:mb-14 px-2">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-primary tracking-wide leading-tight">
-                Buffet Menu
-              </h2>
-              <div className="flex items-center justify-center gap-2 sm:gap-3 mt-3">
-                <div className="h-px bg-secondary/50 w-10 sm:w-12 md:w-16" />
-                <div className="w-1.5 h-1.5 bg-secondary rounded-full flex-shrink-0" />
-                <div className="h-px bg-secondary/50 w-10 sm:w-12 md:w-16" />
-              </div>
+          <div className="space-y-14">{youngItems.map(renderDbSection)}</div>
+        )
+      ) : (
+        <div>
+          <div className="text-center mb-8 sm:mb-10 md:mb-14 px-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-primary tracking-wide leading-tight">
+              Buffet Menu
+              <span className="text-primary/60 ml-3 text-lg sm:text-xl md:text-2xl font-normal italic">
+                € 35.00
+              </span>
+            </h2>
+            <div className="flex items-center justify-center gap-2 sm:gap-3 mt-3">
+              <div className="h-px bg-secondary/50 w-10 sm:w-12 md:w-16" />
+              <div className="w-1.5 h-1.5 bg-secondary rounded-full flex-shrink-0" />
+              <div className="h-px bg-secondary/50 w-10 sm:w-12 md:w-16" />
             </div>
-            <BuffetIsideSection />
           </div>
-        )}
-      </section>
+          <BuffetIsideSection />
+        </div>
+      )}
     </div>
   )
 }
