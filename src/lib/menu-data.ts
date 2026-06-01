@@ -158,10 +158,25 @@ export const MENU_DATA: MenuSection[] = [
     ],
   },
   {
+    id: 'buffet',
+    title: 'Buffet Menu',
+    type: 'buffet',
+    basePrice: 35.00,
+    order: 12,
+    items: [
+      { id: uid(), name: 'Aperitivo', description: 'Pizzette e Focaccine, Paninetto con hamburger, Tartine con prosciutto e maionese', price: 0 },
+      { id: uid(), name: 'Isola dei Primi', description: 'Lasagna alla bolognese, Sformato di anelletti alla siciliana, Insalata di riso alla cantonese, Insalata di pasta con pesto, basilico e scaglie di grana', price: 0 },
+      { id: uid(), name: 'Isola della Carne', description: 'Arrosto di manzo, Tartà di vitello, Roastbeef con grana, rucola e pomodorino, Involtino di carne con prosciutto e formaggio, Stinco brasato', price: 0 },
+      { id: uid(), name: 'Isola dei Fritti', description: 'Arancinette al ragù, Arancinette spinaci e mozzarella, Verdure in pastella, Alette di pollo alla texana', price: 0 },
+      { id: uid(), name: 'Isola dei Contorni', description: 'Insalata mista, Patate al forno, Verdure grigliate, Patatine fritte', price: 0 },
+      { id: uid(), name: 'Bevande', description: 'Prosecco, Vino rosso, Vino bianco, Acqua, Coca Cola', price: 0 },
+    ],
+  },
+  {
     id: 'young',
     title: 'Young Menu',
     type: 'buffet',
-    order: 12,
+    order: 13,
     items: [
       { id: uid(), name: 'Aperitivo Cocktail Bar', price: null, description: 'Chips, Cocktail analcolici, Succhi, Acqua, Coca Cola' },
       { id: uid(), name: 'Cena a Buffet', price: null, description: 'Arancinette, Pizzette miste, Paninetti farciti, Paninetto hamburger vitello, Nugget pollo, Panino cotoletta' },
