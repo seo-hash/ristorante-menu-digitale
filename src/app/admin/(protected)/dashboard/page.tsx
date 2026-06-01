@@ -40,7 +40,7 @@ const CATEGORY_TYPES = [
   { value: 'dipendente', label: 'Menu Dipendente' },
 ] as const
 
-const DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
+const DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì']
 
 type TabId = 'cucina' | 'bar' | 'young' | 'buffet' | 'proteico' | 'dipendente' | 'vini'
 
@@ -447,12 +447,9 @@ export default function AdminDashboard() {
                             <input type="number" step="0.01" value={itemForm.price} onChange={(e) => setItemForm({ ...itemForm, price: e.target.value })} placeholder="Prezzo (€)" className="px-3 py-2 border border-stone-200 rounded-lg text-base" />
                           )}
                           {hasDay && (
-                            <select value={itemForm.day} onChange={(e) => setItemForm({ ...itemForm, day: e.target.value })} className="px-3 py-2 border border-stone-200 rounded-lg text-base bg-white">
-                              <option value="">Seleziona giorno</option>
-                              {DAYS.map((d) => (
-                                <option key={d} value={d}>{d}</option>
-                              ))}
-                            </select>
+                            <div className="px-3 py-2 border border-stone-200 rounded-lg text-base bg-stone-50 text-stone-600">
+                              {itemForm.day || 'Nessun giorno assegnato'}
+                            </div>
                           )}
                         </div>
                         <input type="text" value={itemForm.description} onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })} placeholder="Descrizione (opzionale)" className="w-full px-3 py-2 border border-stone-200 rounded-lg text-base" />
@@ -477,9 +474,15 @@ export default function AdminDashboard() {
                                       body: JSON.stringify({ dishName: itemForm.name.trim() }),
                                     })
                                     const data = await res.json()
-                                    if (data.allergens && data.allergens.length > 0) {
+                                    if (data.error) {
+                                      setAiSuggested('ERRORE: ' + data.error)
+                                    } else if (data.allergens && data.allergens.length > 0) {
                                       setAiSuggested(data.allergens.join(', '))
+                                    } else {
+                                      setAiSuggested('ERRORE: Nessun allergene rilevato, riprova o inserisci manualmente')
                                     }
+                                  } catch (err) {
+                                    setAiSuggested('ERRORE: Chiamata fallita, riprova')
                                   } finally {
                                     setAiLoading(false)
                                   }
@@ -491,26 +494,40 @@ export default function AdminDashboard() {
                               </button>
                             </div>
                             {aiSuggested && (
-                              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 space-y-2">
-                                <p className="text-xs text-emerald-800 font-medium">Allergeni rilevati da AI:</p>
-                                <p className="text-sm text-emerald-900">{aiSuggested}</p>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => {
-                                      setItemForm({ ...itemForm, allergens: aiSuggested })
-                                      setAiSuggested(null)
-                                    }}
-                                    className="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-semibold hover:bg-emerald-700"
-                                  >
-                                    Accetta
-                                  </button>
+                              <div className={`border rounded-lg p-3 space-y-2 ${aiSuggested.startsWith('ERRORE:') ? 'bg-red-50 border-red-200' : 'bg-emerald-50 border-emerald-200'}`}>
+                                <p className={`text-xs font-medium ${aiSuggested.startsWith('ERRORE:') ? 'text-red-800' : 'text-emerald-800'}`}>
+                                  {aiSuggested.startsWith('ERRORE:') ? 'Errore analisi:' : 'Allergeni rilevati da AI:'}
+                                </p>
+                                <p className={`text-sm ${aiSuggested.startsWith('ERRORE:') ? 'text-red-900' : 'text-emerald-900'}`}>
+                                  {aiSuggested.replace('ERRORE: ', '')}
+                                </p>
+                                {!aiSuggested.startsWith('ERRORE:') && (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => {
+                                        setItemForm({ ...itemForm, allergens: aiSuggested })
+                                        setAiSuggested(null)
+                                      }}
+                                      className="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-semibold hover:bg-emerald-700"
+                                    >
+                                      Accetta
+                                    </button>
+                                    <button
+                                      onClick={() => setAiSuggested(null)}
+                                      className="bg-stone-200 text-stone-700 px-3 py-1.5 rounded text-xs hover:bg-stone-300"
+                                    >
+                                      Rifiuta
+                                    </button>
+                                  </div>
+                                )}
+                                {aiSuggested.startsWith('ERRORE:') && (
                                   <button
                                     onClick={() => setAiSuggested(null)}
                                     className="bg-stone-200 text-stone-700 px-3 py-1.5 rounded text-xs hover:bg-stone-300"
                                   >
-                                    Rifiuta
+                                    Chiudi
                                   </button>
-                                </div>
+                                )}
                               </div>
                             )}
                           </div>
